@@ -4,6 +4,7 @@
 	"scripts": {
 		"dev": "svelte-kit dev --port 4000",
 		"build": "svelte-kit build",
+		"buildCPP": "em++ --bind -O3 -s SINGLE_FILE=1 -s ENVIRONMENT='web' -s ALLOW_MEMORY_GROWTH=1 -o src/wasm/chess.js cpp/export.cpp cpp/chess/*.cpp && echo 'export default Module;' >> src/wasm/chess.js",
 		"package": "svelte-kit package",
 		"preview": "svelte-kit preview",
 		"check": "svelte-check --tsconfig ./tsconfig.json",
