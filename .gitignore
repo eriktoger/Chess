@@ -9,3 +9,7 @@ node_modules
 .npmrc
 bazel*
 .vscode
+
+src/wasm/
+static/chess.wasm
+src/static
