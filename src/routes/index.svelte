@@ -16,10 +16,10 @@
 	onMount(() => {
 		const { canvas, context, squareSize } = initializeBoard();
 		Module.onRuntimeInitialized = async () => {
-			const { whitePawn, blackPawn } = await loadImages();
+			const images = await loadImages();
 
 			let squares = Module.getSquares();
-			drawBoard(context, squares, squareSize, whitePawn, blackPawn);
+			drawBoard(context, squares, squareSize, images);
 
 			let mouseDown = false;
 			let currentSquare: Coordinate;
@@ -32,10 +32,7 @@
 					const {
 						piece: { type, color }
 					} = squares.get(currentSquare.row).get(currentSquare.col);
-					drawPossibleMoves(context, possibleMoves, squareSize, type, color, {
-						whitePawn,
-						blackPawn
-					});
+					drawPossibleMoves(context, squares, possibleMoves, squareSize, type, color, images);
 
 					mouseDown = true;
 				}
@@ -45,7 +42,7 @@
 				if (mouseDown) {
 					selectedSquare = getSelectedSquare(canvas, event, squareSize, possibleMoves);
 
-					drawBoard(context, squares, squareSize, whitePawn, blackPawn, currentSquare);
+					drawBoard(context, squares, squareSize, images, currentSquare);
 
 					if (selectedSquare) {
 						highlightSquare(context, squareSize, selectedSquare.row, selectedSquare.col);
@@ -55,12 +52,9 @@
 						piece: { type, color }
 					} = squares.get(currentSquare.row).get(currentSquare.col);
 
-					drawPossibleMoves(context, possibleMoves, squareSize, type, color, {
-						whitePawn,
-						blackPawn
-					});
+					drawPossibleMoves(context, squares, possibleMoves, squareSize, type, color, images);
 
-					const piece = getImage(type, color, { whitePawn, blackPawn });
+					const piece = getImage(type, color, images);
 					drawLiftedPiece(event, canvas, context, squareSize, piece);
 				}
 			});
@@ -79,7 +73,7 @@
 							selectedSquare.col
 						);
 					}
-					drawBoard(context, squares, squareSize, whitePawn, blackPawn);
+					drawBoard(context, squares, squareSize, images);
 					mouseDown = false;
 				}
 			});

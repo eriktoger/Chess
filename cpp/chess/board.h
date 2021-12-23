@@ -14,6 +14,7 @@ private:
   Square currentSquare;
   std::vector<Move> history;
   void changeTurn();
+  void findPossiblePawnMoves(int row, int col, const std::string &pieceColor);
 
 public:
   Board();

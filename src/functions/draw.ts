@@ -42,8 +42,7 @@ export const drawBoard = (
 	context: CanvasRenderingContext2D,
 	squares: RowArray,
 	squareSize: number,
-	whitePawn: HTMLImageElement,
-	blackPawn: HTMLImageElement,
+	images: Images,
 	currentSquare?: { row: number; col: number }
 ): void => {
 	for (let r = 0; r < squares.size(); r++) {
@@ -62,32 +61,33 @@ export const drawBoard = (
 			} else {
 				context.globalAlpha = 1;
 			}
-
-			if (type === 'Pawn') {
-				if (pieceColor === 'White') {
-					drawPiece(context, squareSize, whitePawn, row, col);
-				} else {
-					drawPiece(context, squareSize, blackPawn, row, col);
-				}
-			}
+			const image = getImage(type, pieceColor, images);
+			image && drawPiece(context, squareSize, image, row, col);
 		}
 	}
 };
 
 export const drawPossibleMoves = (
 	context: CanvasRenderingContext2D,
+	squares: RowArray,
 	possibleMoves: SquareArray,
 	squareSize: number,
 	type: string,
 	color: string,
 	images: Images
 ): void => {
-	context.globalAlpha = 0.4;
-
 	for (let i = 0; i < possibleMoves.size(); i++) {
 		const image = getImage(type, color, images);
 		const { row, col } = possibleMoves.get(i);
-		drawPiece(context, squareSize, image, row, col);
+		const square = squares.get(row).get(col);
+		if (square.piece.type !== '') {
+			context.fillStyle = 'red';
+			context.globalAlpha = 0.25;
+			context.fillRect(square.col * squareSize, square.row * squareSize, squareSize, squareSize);
+		} else {
+			context.globalAlpha = 0.4;
+			drawPiece(context, squareSize, image, row, col);
+		}
 	}
 };
 

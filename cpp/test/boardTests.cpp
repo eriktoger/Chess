@@ -92,3 +92,33 @@ TEST(NewBoardTests, cannotMoveOpponentsPiece) {
   const auto &piece = newBoard.getSquare(3, 4).getPiece();
   EXPECT_EQ(piece.getType(), "");
 }
+
+TEST(NewBoardTests, PossiblePawnMovesInvolvesCaptures) {
+  Board newBoard;
+  // e2-e4
+  newBoard.getPossibleMoves(6, 4);
+  newBoard.movePiece(6, 4, 4, 4);
+
+  // d7-d5
+  newBoard.getPossibleMoves(1, 3);
+  newBoard.movePiece(1, 3, 3, 3);
+
+  // c2-c4
+  newBoard.getPossibleMoves(6, 2);
+  newBoard.movePiece(6, 2, 4, 2);
+
+  // check if d5 can capture e4 and c4
+  auto possibleMoves = newBoard.getPossibleMoves(3, 3);
+  auto e4Pawn =
+      find_if(begin(possibleMoves), end(possibleMoves), [](const Square &s) {
+        return s.getRow() == 4 && s.getCol() == 4;
+      });
+  auto c4Pawn =
+      find_if(begin(possibleMoves), end(possibleMoves), [](const Square &s) {
+        return s.getRow() == 4 && s.getCol() == 2;
+      });
+
+  EXPECT_EQ(possibleMoves.size(), 3);
+  EXPECT_TRUE(e4Pawn != end(possibleMoves));
+  EXPECT_TRUE(c4Pawn != end(possibleMoves));
+}

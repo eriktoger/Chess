@@ -65,43 +65,65 @@ std::vector<Square> Board::getPossibleMoves(int r, int c) {
   }
 
   if (type == PAWN) {
+    findPossiblePawnMoves(row, col, pieceColor);
+  }
 
-    const int rowMultiplier = pieceColor == WHITE ? -1 : 1;
-    const int startingRow = pieceColor == WHITE ? 6 : 1;
-    const int oneRow = row + 1 * rowMultiplier;
-    const int twoRow = row + 2 * rowMultiplier;
+  return possibleSquares;
+}
 
-    // can move one step
-    const auto oneSquareInfront = squares[oneRow][col];
-    auto canMoveOneStep = oneSquareInfront.getPiece().getType().empty();
-    if (canMoveOneStep) {
-      possibleSquares.emplace_back(oneSquareInfront);
-    }
-    // can move two steps
-    auto isAtStart = currentSquare.getRow() == startingRow;
+void Board::findPossiblePawnMoves(int row, int col,
+                                  const std::string &pieceColor) {
 
+  const int rowMultiplier = pieceColor == WHITE ? -1 : 1;
+  const int startingRow = pieceColor == WHITE ? 6 : 1;
+  const int oneRow = row + 1 * rowMultiplier;
+  const int twoRow = row + 2 * rowMultiplier;
+
+  // can move one step
+  const auto oneSquareInfront = squares[oneRow][col];
+  auto canMoveOneStep = oneSquareInfront.getPiece().getType().empty();
+  if (canMoveOneStep) {
+    possibleSquares.emplace_back(oneSquareInfront);
+  }
+
+  // can move two steps
+  auto isAtStart = currentSquare.getRow() == startingRow;
+
+  if (isAtStart) {
     const auto twoSquaresInfront = squares[twoRow][col];
-    auto canMoveTwoSteps = canMoveOneStep && isAtStart &&
-                           twoSquaresInfront.getPiece().getType().empty();
+    auto canMoveTwoSteps =
+        canMoveOneStep && twoSquaresInfront.getPiece().getType().empty();
 
     if (canMoveTwoSteps) {
       possibleSquares.emplace_back(twoSquaresInfront);
     }
-
-    // can take left
-
-    // can take right
-
-    // can take en passant
-
-    // can promote
-    // implement when we have all pieces
-
-    // cant do anything since it is pinned or the king is in check
-    // implement when we have a king
   }
 
-  return possibleSquares;
+  // can take left
+  if (col > 0) {
+    const auto leftSquare = squares[row + rowMultiplier][col - 1];
+    const auto leftPiece = leftSquare.getPiece();
+    if (leftPiece.getColor() != pieceColor && leftPiece.getType() != "") {
+      possibleSquares.emplace_back(leftSquare);
+    }
+  }
+
+  // can take right
+  if (col < BOARD_LENGTH) {
+    const auto rightSquare = squares[row + rowMultiplier][col + 1];
+    const auto rightPiece = rightSquare.getPiece();
+    if (rightPiece.getColor() != pieceColor && rightPiece.getType() != "") {
+      possibleSquares.emplace_back(rightSquare);
+    }
+  }
+
+  // can take en passant
+
+  // can promote
+  // implement when we have all pieces
+
+  // cant do anything since it is pinned or the king is in check
+  // implement when we have a king
 }
 
 void Board::changeTurn() { turn = turn == WHITE ? BLACK : WHITE; }
