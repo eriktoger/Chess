@@ -1,4 +1,4 @@
-export type Coordinate = {
+export type BoardPosition = {
 	row: number;
 	col: number;
 };
@@ -27,7 +27,7 @@ export type RowArray = {
 
 export type TModule = {
 	onRuntimeInitialized: () => void;
-	getPossibleMoves: () => SquareArray;
+	getPossibleMoves: (row: number, col: number) => SquareArray;
 	getSquares: () => RowArray;
 	movePiece: (startRow: number, startCol: number, endRow: number, endCol: number) => RowArray;
 };
