@@ -122,3 +122,39 @@ TEST(NewBoardTests, PossiblePawnMovesInvolvesCaptures) {
   EXPECT_TRUE(e4Pawn != end(possibleMoves));
   EXPECT_TRUE(c4Pawn != end(possibleMoves));
 }
+
+TEST(NewBoardTests, EnPassant) {
+  Board newBoard;
+  // e2-e4
+  newBoard.getPossibleMoves(6, 4);
+  newBoard.movePiece(6, 4, 4, 4);
+
+  // e7-e6
+  newBoard.getPossibleMoves(1, 4);
+  newBoard.movePiece(1, 4, 2, 4);
+
+  // e4-e5
+  newBoard.getPossibleMoves(4, 4);
+  newBoard.movePiece(4, 4, 3, 4);
+
+  // d7-d5
+  newBoard.getPossibleMoves(1, 3);
+  newBoard.movePiece(1, 3, 3, 3);
+
+  // check if e5 can en passant d6
+  auto possibleMoves = newBoard.getPossibleMoves(3, 4);
+  newBoard.movePiece(3, 4, 2, 3);
+
+  auto canMoveToD6 =
+      find_if(begin(possibleMoves), end(possibleMoves), [](const Square &s) {
+        return s.getRow() == 2 && s.getCol() == 3;
+      }) != end(possibleMoves);
+
+  auto d5Square = newBoard.getSquare(3, 3);
+  auto d6Square = newBoard.getSquare(2, 3);
+
+  EXPECT_EQ(possibleMoves.size(), 1);
+  EXPECT_TRUE(canMoveToD6);
+  EXPECT_EQ(d6Square.getPiece().getType(), PAWN);
+  EXPECT_EQ(d5Square.getPiece().getType(), "");
+}

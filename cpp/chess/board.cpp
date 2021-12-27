@@ -118,6 +118,15 @@ void Board::findPossiblePawnMoves(int row, int col,
   }
 
   // can take en passant
+  if (history.size() > 0) {
+    const auto lastMove = history.back();
+    if (lastMove.pieceTypeMoved == PAWN && lastMove.player != turn &&
+        lastMove.endRow == row && lastMove.startRow == twoRow &&
+        (col + 1 == lastMove.endCol || col - 1 == lastMove.endCol)) {
+      possibleSquares.emplace_back(
+          squares[row + rowMultiplier][lastMove.endCol]);
+    }
+  }
 
   // can promote
   // implement when we have all pieces
@@ -150,15 +159,25 @@ void Board::movePiece(int startR, int startC, int endR, int endC) {
     return;
   }
 
-  // save to history
   auto pieceTypeMoved = currentSquare.getPiece().getType();
-  auto pieceTypeCaptured = squareIter->getPiece().getType();
-  history.emplace_back(turn, startRow, startCol, endRow, endCol, pieceTypeMoved,
-                       pieceTypeCaptured);
+  auto pieceTypeOnLandingSquare = squareIter->getPiece().getType();
+  const auto isEnPassant = pieceTypeMoved == PAWN && startCol != endCol &&
+                           pieceTypeOnLandingSquare == "";
 
   // actully move piece
+
   squares[endRow][endCol].replacePiece(squares[startRow][startCol].getPiece());
   squares[startRow][startCol].replacePiece(Piece());
+
+  if (isEnPassant) {
+    const auto lastMove = history.back();
+    squares[lastMove.endRow][lastMove.endCol].replacePiece(Piece());
+  }
+
+  // save to history
+  auto pieceTypeCaptured = isEnPassant ? PAWN : pieceTypeOnLandingSquare;
+  history.emplace_back(turn, startRow, startCol, endRow, endCol, pieceTypeMoved,
+                       pieceTypeCaptured);
 
   // has game ended?
 
