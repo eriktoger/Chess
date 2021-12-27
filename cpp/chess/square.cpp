@@ -6,11 +6,16 @@ Square::Square() {
   col = -1;
 }
 
-Square::Square(std::string color, int row, int col, Piece piece)
-    : color{color}, row{row}, col{col}, piece{piece} {}
+Square::Square(int row, int col, Piece piece)
+    : row{row}, col{col}, piece{piece} {
 
-Square::Square(std::string color, int row, int col)
-    : color{color}, row{row}, col{col} {}
+  color = calcSquareColor(row, col);
+}
+
+Square::Square(int row, int col) : row{row}, col{col} {
+
+  color = calcSquareColor(row, col);
+}
 
 int Square::getRow() const { return row; }
 

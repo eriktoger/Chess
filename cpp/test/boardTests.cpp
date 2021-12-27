@@ -158,3 +158,30 @@ TEST(NewBoardTests, EnPassant) {
   EXPECT_EQ(d6Square.getPiece().getType(), PAWN);
   EXPECT_EQ(d5Square.getPiece().getType(), "");
 }
+
+TEST(NewBoardTests, Bishop) {
+  Board newBoard;
+  // e2-e4
+  newBoard.getPossibleMoves(6, 4);
+  newBoard.movePiece(6, 4, 4, 4);
+
+  // e7-e6
+  newBoard.getPossibleMoves(1, 4);
+  newBoard.movePiece(1, 4, 2, 4);
+
+  // Bf1-c4
+  newBoard.getPossibleMoves(7, 5);
+  newBoard.movePiece(7, 5, 4, 2);
+
+  // d7-d6
+  newBoard.getPossibleMoves(1, 3);
+  newBoard.movePiece(1, 3, 2, 3);
+
+  // Bishop moves
+  auto possibleMoves = newBoard.getPossibleMoves(4, 2);
+  newBoard.movePiece(4, 2, 5, 1);
+  const auto square = newBoard.getSquare(5, 1);
+
+  EXPECT_EQ(possibleMoves.size(), 8);
+  EXPECT_EQ(square.getPiece().getType(), BISHOP);
+}

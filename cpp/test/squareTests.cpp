@@ -15,10 +15,10 @@ TEST(SquareTests, DefaultSquare) {
 
 TEST(SquareTests, WithPiece) {
   auto piece = Piece(PAWN, WHITE);
-  auto square = Square(WHITE, 1, 0, piece);
+  auto square = Square(1, 0, piece);
   auto pieceOnSquare = square.getPiece();
 
-  EXPECT_EQ(square.getColor(), WHITE);
+  EXPECT_EQ(square.getColor(), BLACK);
   EXPECT_EQ(square.getRow(), 1);
   EXPECT_EQ(square.getCol(), 0);
   EXPECT_EQ(pieceOnSquare.getType(), PAWN);
@@ -27,10 +27,10 @@ TEST(SquareTests, WithPiece) {
 
 TEST(SquareTests, WithoutPiece) {
 
-  auto square = Square(WHITE, 1, 0);
+  auto square = Square(1, 0);
   auto pieceOnSquare = square.getPiece();
 
-  EXPECT_EQ(square.getColor(), WHITE);
+  EXPECT_EQ(square.getColor(), BLACK);
   EXPECT_EQ(square.getRow(), 1);
   EXPECT_EQ(square.getCol(), 0);
   EXPECT_EQ(pieceOnSquare.getType(), "");
@@ -40,7 +40,7 @@ TEST(SquareTests, WithoutPiece) {
 TEST(SquareTests, ReplacePiece) {
 
   auto piece = Piece(PAWN, WHITE);
-  auto square = Square(WHITE, 1, 0, piece);
+  auto square = Square(1, 0, piece);
   auto newPiece = Piece(PAWN, BLACK);
   square.replacePiece(newPiece);
   auto pieceOnSquare = square.getPiece();

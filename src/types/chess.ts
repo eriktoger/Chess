@@ -35,4 +35,6 @@ export type TModule = {
 export type Images = {
 	whitePawn: HTMLImageElement;
 	blackPawn: HTMLImageElement;
+	whiteBishop: HTMLImageElement;
+	blackBishop: HTMLImageElement;
 };

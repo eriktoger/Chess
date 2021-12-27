@@ -7,28 +7,30 @@ Board::Board() {
   // white pawns
   for (int i = 0; i < 8; i++) {
     auto piece = Piece(PAWN, WHITE);
-    auto color = calcSquareColor(6, i);
-    auto square = Square(color, 6, i, piece);
-
-    squares[6][i] = square;
+    squares[6][i] = Square(6, i, piece);
   }
 
   // black pawns
   for (int i = 0; i < 8; i++) {
     auto piece = Piece(PAWN, BLACK);
-    auto color = calcSquareColor(1, i);
-    auto square = Square(color, 1, i, piece);
 
-    squares[1][i] = square;
+    squares[1][i] = Square(1, i, piece);
   }
+
+  // white bishops
+  auto whiteBishop = Piece(BISHOP, WHITE);
+  squares[7][2] = Square(7, 2, whiteBishop);
+  squares[7][5] = Square(7, 5, whiteBishop);
+
+  // black bishops
+  auto blackBishop = Piece(BISHOP, BLACK);
+  squares[0][2] = Square(0, 2, blackBishop);
+  squares[0][5] = Square(0, 5, blackBishop);
 
   // squares with out a piece
   for (int i = 2; i < 6; i++) {
     for (int j = 0; j < 8; j++) {
-      auto color = calcSquareColor(i, j);
-      auto square = Square(color, i, j);
-
-      squares[i][j] = square;
+      squares[i][j] = Square(i, j);
     }
   }
 
@@ -66,6 +68,10 @@ std::vector<Square> Board::getPossibleMoves(int r, int c) {
 
   if (type == PAWN) {
     findPossiblePawnMoves(row, col, pieceColor);
+  }
+
+  if (type == BISHOP) {
+    findPossibleBishopMoves(row, col, pieceColor);
   }
 
   return possibleSquares;
@@ -133,6 +139,40 @@ void Board::findPossiblePawnMoves(int row, int col,
 
   // cant do anything since it is pinned or the king is in check
   // implement when we have a king
+}
+
+bool Board::addPossibleSquare(int currentRow, int currentCol,
+                              std::string pieceColor) {
+  const auto square = squares[currentRow][currentCol];
+  const auto currentPieceColor = square.getPiece().getColor();
+
+  if (currentPieceColor == pieceColor) {
+    return false;
+  }
+  if (currentPieceColor != "" && currentPieceColor != pieceColor) {
+    possibleSquares.emplace_back(square);
+    return false;
+  }
+
+  possibleSquares.emplace_back(square);
+  return true;
+}
+
+void Board::findPossibleBishopMoves(int row, int col,
+                                    const std::string &pieceColor) {
+
+  for (const auto &movement : bishopMovement) {
+    auto currentRow = row + movement.rowDiff;
+    auto currentCol = col + movement.colDiff;
+    auto continueFindingMoves = true;
+
+    while (continueFindingMoves && isInsideBoard(currentRow, currentCol)) {
+      continueFindingMoves =
+          addPossibleSquare(currentRow, currentCol, pieceColor);
+      currentRow += movement.rowDiff;
+      currentCol += movement.colDiff;
+    }
+  }
 }
 
 void Board::changeTurn() { turn = turn == WHITE ? BLACK : WHITE; }

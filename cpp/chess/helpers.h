@@ -8,4 +8,6 @@ std::string calcSquareColor(int row, int col);
 
 int sanitizeBoardLength(int number);
 
+bool isInsideBoard(int row, int col);
+
 #endif

@@ -7,3 +7,7 @@ std::string calcSquareColor(int row, int col) {
 int sanitizeBoardLength(int number) {
   return std::max(0, std::min(number, BOARD_LENGTH - 1));
 }
+
+bool isInsideBoard(int row, int col) {
+  return row > -1 && col > -1 && row < BOARD_LENGTH && col < BOARD_LENGTH;
+}

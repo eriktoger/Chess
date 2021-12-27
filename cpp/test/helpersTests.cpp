@@ -16,3 +16,18 @@ TEST(HelperTests, SanitizeBoardLength) {
   EXPECT_EQ(value2, 7);
   EXPECT_EQ(value3, 5);
 }
+
+TEST(HelperTests, IsInsideBoard) {
+  auto isInside = isInsideBoard(5, 5);
+  auto isOutside1 = isInsideBoard(-1, 1);
+  auto isOutside2 = isInsideBoard(1, -1);
+  auto isOutside3 = isInsideBoard(8, 1);
+  auto isOutside4 = isInsideBoard(1, 8);
+
+  EXPECT_TRUE(isInside);
+  EXPECT_FALSE(isOutside1);
+  EXPECT_FALSE(isOutside1);
+  EXPECT_FALSE(isOutside2);
+  EXPECT_FALSE(isOutside3);
+  EXPECT_FALSE(isOutside4);
+}
