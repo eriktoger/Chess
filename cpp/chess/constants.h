@@ -8,14 +8,17 @@ constexpr char WHITE[] = "White";
 constexpr char BLACK[] = "Black";
 constexpr char PAWN[] = "Pawn";
 constexpr char BISHOP[] = "Bishop";
+constexpr char KNIGHT[] = "Knight";
 
 struct Movement {
-
   int rowDiff;
   int colDiff;
 };
 
 const std::vector<Movement> bishopMovement = {
     {-1, -1}, {1, 1}, {-1, 1}, {1, -1}};
+
+const std::vector<Movement> knightMovement = {
+    {2, 1}, {1, 2}, {-2, -1}, {-1, -2}, {-2, 1}, {-1, 2}, {2, -1}, {1, -2}};
 
 #endif

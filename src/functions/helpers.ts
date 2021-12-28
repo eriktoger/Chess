@@ -13,7 +13,9 @@ export const loadImages = async (): Promise<Images> => {
 	const whitePawn = await loadImage('/white_pawn.png');
 	const blackBishop = await loadImage('/black_bishop.png');
 	const whiteBishop = await loadImage('/white_bishop.png');
-	return { blackPawn, whitePawn, blackBishop, whiteBishop };
+	const blackKnight = await loadImage('/black_knight.png');
+	const whiteKnight = await loadImage('/white_knight.png');
+	return { blackPawn, whitePawn, blackBishop, whiteBishop, blackKnight, whiteKnight };
 };
 
 export const getImage = (type: string, color: string, images: Images): HTMLImageElement => {
@@ -28,5 +30,11 @@ export const getImage = (type: string, color: string, images: Images): HTMLImage
 	}
 	if (type == 'Bishop' && color === 'Black') {
 		return images.blackBishop;
+	}
+	if (type == 'Knight' && color === 'White') {
+		return images.whiteKnight;
+	}
+	if (type == 'Knight' && color === 'Black') {
+		return images.blackKnight;
 	}
 };

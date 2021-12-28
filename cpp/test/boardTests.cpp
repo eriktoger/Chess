@@ -185,3 +185,26 @@ TEST(NewBoardTests, Bishop) {
   EXPECT_EQ(possibleMoves.size(), 8);
   EXPECT_EQ(square.getPiece().getType(), BISHOP);
 }
+
+TEST(NewBoardTests, Knight) {
+  Board newBoard;
+  // Kng1-h3
+  newBoard.getPossibleMoves(7, 6);
+  newBoard.movePiece(7, 6, 5, 7);
+
+  // e7-e6
+  newBoard.getPossibleMoves(1, 4);
+  newBoard.movePiece(1, 4, 2, 4);
+
+  // Knh3-f4
+  newBoard.getPossibleMoves(5, 7);
+  newBoard.movePiece(5, 7, 4, 5);
+
+  // Knb8-c6
+  newBoard.getPossibleMoves(0, 1);
+  newBoard.movePiece(0, 1, 2, 2);
+
+  // Knight moves
+  auto possibleMoves = newBoard.getPossibleMoves(4, 5);
+  EXPECT_EQ(possibleMoves.size(), 6);
+}
