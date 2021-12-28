@@ -14,9 +14,9 @@ private:
   Square currentSquare;
   std::vector<Move> history;
   void changeTurn();
-  void findPossiblePawnMoves(int row, int col, const std::string &pieceColor);
-  void findPossibleBishopMoves(int row, int col, const std::string &pieceColor);
-  void findPossibleKnightMoves(int row, int col, const std::string &pieceColor);
+  void findPossiblePawnMoves();
+  void findPossibleLinearMoves(const std::vector<Movement> &movements);
+  void findPossibleKnightMoves();
   bool addPossibleSquare(int currentRow, int currentCol,
                          std::string pieceColor);
 

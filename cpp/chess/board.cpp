@@ -36,6 +36,16 @@ Board::Board() {
   squares[0][1] = Square(0, 1, blackKnight);
   squares[0][6] = Square(0, 6, blackKnight);
 
+  // white rooks
+  auto whiteRook = Piece(ROOK, WHITE);
+  squares[7][0] = Square(7, 0, whiteRook);
+  squares[7][7] = Square(7, 7, whiteRook);
+
+  // black Rook
+  auto blackRook = Piece(ROOK, BLACK);
+  squares[0][0] = Square(0, 0, blackRook);
+  squares[0][7] = Square(0, 7, blackRook);
+
   // squares with out a piece
   for (int i = 2; i < 6; i++) {
     for (int j = 0; j < 8; j++) {
@@ -63,9 +73,7 @@ std::vector<Square> Board::getPossibleMoves(int r, int c) {
 
   currentSquare = squares[row][col];
 
-  const auto &currentPiece = currentSquare.getPiece();
-  auto type = currentPiece.getType();
-  auto pieceColor = currentPiece.getColor();
+  const auto &type = currentSquare.getPiece().getType();
 
   possibleSquares.clear();
 
@@ -76,23 +84,29 @@ std::vector<Square> Board::getPossibleMoves(int r, int c) {
   }
 
   if (type == PAWN) {
-    findPossiblePawnMoves(row, col, pieceColor);
+    findPossiblePawnMoves();
   }
 
   if (type == BISHOP) {
-    findPossibleBishopMoves(row, col, pieceColor);
+    findPossibleLinearMoves(bishopMovement);
   }
 
   if (type == KNIGHT) {
-    findPossibleKnightMoves(row, col, pieceColor);
+    findPossibleKnightMoves();
+  }
+
+  if (type == ROOK) {
+    findPossibleLinearMoves(rookMovement);
   }
 
   return possibleSquares;
 }
 
-void Board::findPossiblePawnMoves(int row, int col,
-                                  const std::string &pieceColor) {
+void Board::findPossiblePawnMoves() {
 
+  const auto &row = currentSquare.getRow();
+  const auto &col = currentSquare.getCol();
+  const auto &pieceColor = currentSquare.getPiece().getColor();
   const int rowMultiplier = pieceColor == WHITE ? -1 : 1;
   const int startingRow = pieceColor == WHITE ? 6 : 1;
   const int oneRow = row + 1 * rowMultiplier;
@@ -119,7 +133,7 @@ void Board::findPossiblePawnMoves(int row, int col,
   }
 
   // can take left
-  if (col > 0) {
+  if (isInsideBoard(row + rowMultiplier, col - 1)) {
     const auto leftSquare = squares[row + rowMultiplier][col - 1];
     const auto leftPiece = leftSquare.getPiece();
     if (leftPiece.getColor() != pieceColor && leftPiece.getType() != "") {
@@ -128,7 +142,7 @@ void Board::findPossiblePawnMoves(int row, int col,
   }
 
   // can take right
-  if (col < BOARD_LENGTH) {
+  if (isInsideBoard(row + rowMultiplier, col + 1)) {
     const auto rightSquare = squares[row + rowMultiplier][col + 1];
     const auto rightPiece = rightSquare.getPiece();
     if (rightPiece.getColor() != pieceColor && rightPiece.getType() != "") {
@@ -177,10 +191,13 @@ bool Board::addPossibleSquare(int currentRow, int currentCol,
   return true;
 }
 
-void Board::findPossibleBishopMoves(int row, int col,
-                                    const std::string &pieceColor) {
+void Board::findPossibleLinearMoves(const std::vector<Movement> &movements) {
 
-  for (const auto &movement : bishopMovement) {
+  const auto &row = currentSquare.getRow();
+  const auto &col = currentSquare.getCol();
+  const auto &pieceColor = currentSquare.getPiece().getColor();
+
+  for (const auto &movement : movements) {
     auto currentRow = row + movement.rowDiff;
     auto currentCol = col + movement.colDiff;
     auto continueFindingMoves = true;
@@ -194,8 +211,11 @@ void Board::findPossibleBishopMoves(int row, int col,
   }
 }
 
-void Board::findPossibleKnightMoves(int row, int col,
-                                    const std::string &pieceColor) {
+void Board::findPossibleKnightMoves() {
+
+  const auto &row = currentSquare.getRow();
+  const auto &col = currentSquare.getCol();
+  const auto &pieceColor = currentSquare.getPiece().getColor();
 
   for (const auto &movement : knightMovement) {
     auto currentRow = row + movement.rowDiff;

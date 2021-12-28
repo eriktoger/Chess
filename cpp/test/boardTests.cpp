@@ -208,3 +208,26 @@ TEST(NewBoardTests, Knight) {
   auto possibleMoves = newBoard.getPossibleMoves(4, 5);
   EXPECT_EQ(possibleMoves.size(), 6);
 }
+
+TEST(NewBoardTests, Rooks) {
+  Board newBoard;
+  // a2-a4
+  newBoard.getPossibleMoves(6, 0);
+  newBoard.movePiece(6, 0, 4, 0);
+
+  // a7-a5
+  newBoard.getPossibleMoves(1, 0);
+  newBoard.movePiece(1, 0, 3, 0);
+
+  // Ra1-a3
+  newBoard.getPossibleMoves(7, 0);
+  newBoard.movePiece(7, 0, 5, 0);
+
+  // Ra8-Ra6
+  newBoard.getPossibleMoves(0, 0);
+  newBoard.movePiece(0, 0, 2, 0);
+
+  // Rook moves
+  auto possibleMoves = newBoard.getPossibleMoves(5, 0);
+  EXPECT_EQ(possibleMoves.size(), 9);
+}
