@@ -31,7 +31,7 @@ Board::Board() {
   squares[7][1] = Square(7, 1, whiteKnight);
   squares[7][6] = Square(7, 6, whiteKnight);
 
-  // black knihgts
+  // black knights
   auto blackKnight = Piece(KNIGHT, BLACK);
   squares[0][1] = Square(0, 1, blackKnight);
   squares[0][6] = Square(0, 6, blackKnight);
@@ -45,6 +45,18 @@ Board::Board() {
   auto blackRook = Piece(ROOK, BLACK);
   squares[0][0] = Square(0, 0, blackRook);
   squares[0][7] = Square(0, 7, blackRook);
+
+  // white queen
+  auto whiteQueen = Piece(QUEEN, WHITE);
+  squares[7][3] = Square(7, 3, whiteQueen);
+
+  // black queen
+  auto blackQueen = Piece(QUEEN, BLACK);
+  squares[0][3] = Square(0, 3, blackQueen);
+
+  // king placeholders
+  squares[7][4] = Square(7, 4);
+  squares[0][4] = Square(0, 4);
 
   // squares with out a piece
   for (int i = 2; i < 6; i++) {
@@ -96,6 +108,11 @@ std::vector<Square> Board::getPossibleMoves(int r, int c) {
   }
 
   if (type == ROOK) {
+    findPossibleLinearMoves(rookMovement);
+  }
+
+  if (type == QUEEN) {
+    findPossibleLinearMoves(bishopMovement);
     findPossibleLinearMoves(rookMovement);
   }
 

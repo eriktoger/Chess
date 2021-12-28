@@ -231,3 +231,26 @@ TEST(NewBoardTests, Rooks) {
   auto possibleMoves = newBoard.getPossibleMoves(5, 0);
   EXPECT_EQ(possibleMoves.size(), 9);
 }
+
+TEST(NewBoardTests, Queens) {
+  Board newBoard;
+  // d2-d4
+  newBoard.getPossibleMoves(6, 3);
+  newBoard.movePiece(6, 3, 4, 3);
+
+  // d7-d5
+  newBoard.getPossibleMoves(1, 3);
+  newBoard.movePiece(1, 3, 3, 3);
+
+  // Qd1-d3
+  newBoard.getPossibleMoves(7, 3);
+  newBoard.movePiece(7, 3, 5, 3);
+
+  // Qd8-d6
+  newBoard.getPossibleMoves(0, 3);
+  newBoard.movePiece(0, 3, 2, 3);
+
+  // Queen moves
+  auto possibleMoves = newBoard.getPossibleMoves(5, 3);
+  EXPECT_EQ(possibleMoves.size(), 16);
+}

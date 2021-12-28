@@ -41,4 +41,6 @@ export type Images = {
 	blackKnight: HTMLImageElement;
 	whiteRook: HTMLImageElement;
 	blackRook: HTMLImageElement;
+	whiteQueen: HTMLImageElement;
+	blackQueen: HTMLImageElement;
 };
