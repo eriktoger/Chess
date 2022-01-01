@@ -16,12 +16,13 @@
 
 <h1>Chess</h1>
 <p>Welcome to my Chess page!</p>
-<div>
+<div id="container">
 	<canvas id="canvas" />
 </div>
 
 <style>
-	#canvas {
-		border: 4px dotted purple;
+	#container {
+		border: 8px solid rgba(102, 19, 19);
+		display: table;
 	}
 </style>

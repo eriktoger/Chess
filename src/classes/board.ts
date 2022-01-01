@@ -74,6 +74,7 @@ class Board {
 				}
 				const image = getImage(type, pieceColor, this.images);
 				image && this.drawPiece(image, row, col);
+				this.context.globalAlpha = 1;
 			}
 		}
 	};
@@ -103,6 +104,7 @@ class Board {
 			} else {
 				this.context.globalAlpha = 0.4;
 				this.drawPiece(image, row, col);
+				this.context.globalAlpha = 1;
 			}
 		}
 	};
@@ -120,6 +122,7 @@ class Board {
 			this.squareSize - 5,
 			this.squareSize - 5
 		);
+		this.context.globalAlpha = 1;
 	};
 
 	highlightSquare = (): void => {
@@ -177,7 +180,7 @@ class Board {
 
 			this.drawPossibleMoves(type, color);
 
-			const piece = getImage(type, color, this.images); //make class method?
+			const piece = getImage(type, color, this.images);
 
 			this.drawLiftedPiece(event, piece);
 		}
@@ -199,7 +202,6 @@ class Board {
 			}
 			this.currentSquare = null;
 			this.mouseDown = false;
-
 			this.drawBoard();
 		}
 	};

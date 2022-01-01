@@ -11,6 +11,7 @@ constexpr char BISHOP[] = "Bishop";
 constexpr char KNIGHT[] = "Knight";
 constexpr char ROOK[] = "Rook";
 constexpr char QUEEN[] = "Queen";
+constexpr char KING[] = "King";
 
 struct Movement {
   int rowDiff;
@@ -21,6 +22,9 @@ const std::vector<Movement> bishopMovement = {
     {-1, -1}, {1, 1}, {-1, 1}, {1, -1}};
 
 const std::vector<Movement> rookMovement = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+
+const std::vector<Movement> queenMovement = {
+    {1, 0}, {0, 1}, {-1, 0}, {0, -1}, {-1, -1}, {1, 1}, {-1, 1}, {1, -1}};
 
 const std::vector<Movement> knightMovement = {
     {2, 1}, {1, 2}, {-2, -1}, {-1, -2}, {-2, 1}, {-1, 2}, {2, -1}, {1, -2}};
