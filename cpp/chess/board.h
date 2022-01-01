@@ -13,6 +13,8 @@ private:
   std::vector<Square> possibleSquares;
   Square currentSquare;
   std::vector<Move> history;
+  std::string promotionType;
+
   void changeTurn();
 
   std::vector<Square> findPossibleMoves(const Square &takeOffSquare,
@@ -78,5 +80,6 @@ public:
   std::vector<Square> getPossibleMoves(int row, int col);
   std::string getTurn();
   void movePiece(int startRow, int startCol, int endRow, int endCol);
+  void setPromotionType(std::string type);
 };
 #endif // BOARD_H

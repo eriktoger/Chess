@@ -508,7 +508,14 @@ void Board::movePiece(int startR, int startC, int endR, int endC) {
 
   auto movedPiece = squares[startRow][startCol].getPiece();
   movedPiece.moved();
-  squares[endRow][endCol].replacePiece(movedPiece);
+
+  if (movedPiece.getType() == "Pawn" && (endRow == 0 || endRow == 7)) {
+    squares[endRow][endCol].replacePiece(
+        Piece(promotionType, movedPiece.getColor()));
+  } else {
+    squares[endRow][endCol].replacePiece(movedPiece);
+  }
+
   squares[startRow][startCol].replacePiece(Piece());
 
   const auto isEnPassant =
@@ -557,3 +564,5 @@ bool Board::moveEnPassant(int startCol, int endCol,
 }
 
 std::string Board::getTurn() { return turn; }
+
+void Board::setPromotionType(std::string type) { promotionType = type; }

@@ -1,6 +1,11 @@
 import type { BoardPosition, SquareArray, Images, RowArray, TModule } from '../types/chess';
 import { getImage } from '../functions/helpers';
-
+import {
+	showPromotionModal,
+	promotionModalPlacement,
+	promotionColor,
+	onChoosePromotion
+} from '../stores/modals';
 class Board {
 	canvas: HTMLCanvasElement;
 	context: CanvasRenderingContext2D;
@@ -193,6 +198,16 @@ class Board {
 			const col = Math.floor((event.clientX - left) / this.squareSize);
 
 			if (row === this.selectedSquare?.row && col == this.selectedSquare?.col) {
+				const isPawn =
+					this.squares.get(this.currentSquare.row).get(this.currentSquare.col).piece.type ===
+					'Pawn';
+				const willPromote = this.selectedSquare.row == 0 || this.selectedSquare.row == 7;
+
+				if (isPawn && willPromote) {
+					this.onPromotion();
+					return;
+				}
+
 				this.squares = this.Module.movePiece(
 					this.currentSquare.row,
 					this.currentSquare.col,
@@ -204,6 +219,28 @@ class Board {
 			this.mouseDown = false;
 			this.drawBoard();
 		}
+	};
+
+	onPromotion = (): void => {
+		const { left, top, width } = this.canvas.getBoundingClientRect();
+		promotionModalPlacement.set({ left, top, width });
+		promotionColor.set(this.Module.getTurn());
+
+		onChoosePromotion.set((type: string) => {
+			this.Module.setPromotionType(type);
+			this.squares = this.Module.movePiece(
+				this.currentSquare.row,
+				this.currentSquare.col,
+				this.selectedSquare.row,
+				this.selectedSquare.col
+			);
+			this.currentSquare = null;
+			this.mouseDown = false;
+			this.drawBoard();
+			showPromotionModal.set(false);
+		});
+
+		showPromotionModal.set(true);
 	};
 }
 

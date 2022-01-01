@@ -30,6 +30,8 @@ export type TModule = {
 	getPossibleMoves: (row: number, col: number) => SquareArray;
 	getSquares: () => RowArray;
 	movePiece: (startRow: number, startCol: number, endRow: number, endCol: number) => RowArray;
+	getTurn: () => string;
+	setPromotionType: (type: string) => void;
 };
 
 export type Images = {

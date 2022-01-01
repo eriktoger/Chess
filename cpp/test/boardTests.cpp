@@ -361,3 +361,14 @@ TEST(NewBoardTests, PinnedPieceCannotMove) {
   auto fPawn = newBoard.getPossibleMoves(1, 5);
   EXPECT_EQ(fPawn.size(), 0);
 }
+
+TEST(NewBoardTests, PromotePawn) {
+  Board newBoard;
+  newBoard.setPromotionType("Knight");
+  moveMaker("e2-e4 d7-d5 e4-d5 c7-c6 d5-c6 h7-h6 c6-b7 h6-h5 b7-a8 h5-h4",
+            newBoard);
+
+  // Pawn promoted to knight;
+  auto knight = newBoard.getSquare(0, 0);
+  EXPECT_EQ(knight.getPiece().getType(), KNIGHT);
+}

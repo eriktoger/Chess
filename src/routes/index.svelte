@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PromotionModal from '../components/promotion/Modal.svelte';
+	import { showPromotionModal } from '../stores/modals';
 	import { onMount } from 'svelte';
 	import { loadImages } from '../functions/helpers';
 	import { getModule } from '../functions/module';
@@ -13,6 +15,10 @@
 		};
 	});
 </script>
+
+{#if $showPromotionModal}
+	<PromotionModal />
+{/if}
 
 <h1>Chess</h1>
 <p>Welcome to my Chess page!</p>

@@ -14,6 +14,8 @@ std::vector<std::vector<Square>> movePiece(int startRow, int startCol,
   return board.getSquares();
 }
 
+void setPromotionType(std::string type) { board.setPromotionType(type); }
+
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(my_module) {
@@ -38,4 +40,5 @@ EMSCRIPTEN_BINDINGS(my_module) {
   emscripten::function("getSquares", &getSquares);
   emscripten::function("getPossibleMoves", &getPossibleMoves);
   emscripten::function("movePiece", &movePiece);
+  emscripten::function("setPromotionType", &setPromotionType);
 }
