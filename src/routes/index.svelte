@@ -1,6 +1,7 @@
 <script lang="ts">
 	import PromotionModal from '../components/promotion/Modal.svelte';
-	import { showPromotionModal } from '../stores/modals';
+	import GameOverModal from '../components/gameOver/Modal.svelte';
+	import { showPromotionModal, gameStatus } from '../stores/modals';
 	import { onMount } from 'svelte';
 	import { loadImages } from '../functions/helpers';
 	import { getModule } from '../functions/module';
@@ -18,6 +19,10 @@
 
 {#if $showPromotionModal}
 	<PromotionModal />
+{/if}
+
+{#if $gameStatus !== ''}
+	<GameOverModal />
 {/if}
 
 <h1>Chess</h1>

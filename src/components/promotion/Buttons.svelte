@@ -3,7 +3,7 @@
 	export let isWhite: boolean;
 </script>
 
-<div>
+<div class="container">
 	<PromotionButton
 		src={isWhite ? 'white_queen.png' : 'black_queen.png'}
 		alt={isWhite ? 'White Queen' : 'Black Queen'}
@@ -30,4 +30,8 @@
 </div>
 
 <style>
+	.container {
+		display: flex;
+		justify-content: space-around;
+	}
 </style>

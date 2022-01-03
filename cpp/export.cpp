@@ -1,19 +1,19 @@
 #include "chess/board.h"
 #include <emscripten/bind.h>
+
 Board board;
 
 std::vector<std::vector<Square>> getSquares() { return board.getSquares(); }
 
 std::vector<Square> getPossibleMoves(int row, int col) {
-  return board.getPossibleMoves(row, col);
+  return board.calcAndGetLegalMoves(row, col);
 }
 
-std::vector<std::vector<Square>> movePiece(int startRow, int startCol,
-                                           int endRow, int endCol) {
-  board.movePiece(startRow, startCol, endRow, endCol);
-  return board.getSquares();
+GameInfo movePiece(int startRow, int startCol, int endRow, int endCol) {
+  return board.makeAMove(startRow, startCol, endRow, endCol);
 }
 
+std::string getTurn() { return board.getTurn(); }
 void setPromotionType(std::string type) { board.setPromotionType(type); }
 
 using namespace emscripten;
@@ -31,6 +31,10 @@ EMSCRIPTEN_BINDINGS(my_module) {
       .property("type", &Piece::getType)
       .property("color", &Piece::getColor);
 
+  emscripten::class_<GameInfo>("GameInfo")
+      .property("status", &GameInfo::getStatus)
+      .property("squares", &GameInfo::getSquares);
+
   emscripten::class_<Board>("Board").property("pieces", &Board::getSquares);
 
   emscripten::register_vector<Piece>("pieceVector");
@@ -41,4 +45,5 @@ EMSCRIPTEN_BINDINGS(my_module) {
   emscripten::function("getPossibleMoves", &getPossibleMoves);
   emscripten::function("movePiece", &movePiece);
   emscripten::function("setPromotionType", &setPromotionType);
+  emscripten::function("getTurn", &getTurn);
 }

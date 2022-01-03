@@ -3,17 +3,31 @@
 #include "helpers.h"
 #include "move.h"
 #include "square.h"
+#include <functional>
 #include <string>
 #include <vector>
 
+class GameInfo {
+  std::string status;
+  std::vector<std::vector<Square>> squares;
+
+public:
+  std::string getStatus() const { return status; }
+  std::vector<std::vector<Square>> getSquares() const { return squares; }
+  GameInfo(std::string status, std::vector<std::vector<Square>> squares)
+      : status(status), squares(squares){};
+  GameInfo(){};
+};
+
 class Board {
 private:
-  std::string turn;
   std::vector<std::vector<Square>> squares;
-  std::vector<Square> possibleSquares;
+  std::vector<Square> legalMoves;
+  std::string turn;
   Square currentSquare;
   std::vector<Move> history;
   std::string promotionType;
+  std::string gameStatus;
 
   void changeTurn();
 
@@ -52,15 +66,18 @@ private:
                      const std::vector<Square> &controlledSquares,
                      const Square &takeOffSquare);
 
-  bool addPossibleSquare(int currentRow, int currentCol,
-                         std::vector<Square> &tempPossibleSquares,
-                         const Square &takeOffSquare);
+  bool addPossibleMove(int currentRow, int currentCol,
+                       std::vector<Square> &tempPossibleSquares,
+                       const Square &takeOffSquare);
 
-  Square findKing();
-  void addLegalMoves(const std::vector<Square> &possibleMoves);
+  Square findKing(std::string color);
+  std::vector<Square> findLegalMoves(const std::vector<Square> &possibleMoves,
+                                     std::string kingColor,
+                                     Square takoffSquare);
 
-  bool isMoveLegal(Square kingSquare, Square currentSquare, Square possibleMove,
-                   const std::vector<Square> &possibleMoves);
+  bool isMoveIllegal(Square kingSquare, Square currentSquare,
+                     Square possibleMove,
+                     const std::vector<Square> &possibleMoves);
 
   std::vector<Square> findControlledSquares(std::string color,
                                             bool controllMode);
@@ -69,6 +86,16 @@ private:
                      std::string pieceTypeOnLandingSquare);
   void moveCastledRook(int endRow, int startCol, int endCol,
                        const Piece &movedPiece);
+  void movePiece(int startRow, int startCol, int endRow, int endCol);
+  std::string calcGameStatus();
+
+  bool verifyMove(int startRow, int startCol, int endRow, int endCol);
+
+  bool canMove(const Square &square);
+  bool isKingInCheck(const Square &square, std::string opponentsColor,
+                     std::function<bool(Square s)> searchForKing);
+
+  int calcMatingMaterial(const Piece &piece, const std::string &color);
 
 public:
   Board();
@@ -77,9 +104,12 @@ public:
         Square currentSquare, std::vector<Move> history);
   Square getSquare(int row, int col);
   std::vector<std::vector<Square>> getSquares() const;
-  std::vector<Square> getPossibleMoves(int row, int col);
+
   std::string getTurn();
-  void movePiece(int startRow, int startCol, int endRow, int endCol);
+  std::vector<Square> calcAndGetLegalMoves(int row, int col);
+
   void setPromotionType(std::string type);
+
+  GameInfo makeAMove(int startR, int startC, int endR, int endC);
 };
 #endif // BOARD_H

@@ -29,7 +29,12 @@ export type TModule = {
 	onRuntimeInitialized: () => void;
 	getPossibleMoves: (row: number, col: number) => SquareArray;
 	getSquares: () => RowArray;
-	movePiece: (startRow: number, startCol: number, endRow: number, endCol: number) => RowArray;
+	movePiece: (
+		startRow: number,
+		startCol: number,
+		endRow: number,
+		endCol: number
+	) => { status: string; squares: RowArray };
 	getTurn: () => string;
 	setPromotionType: (type: string) => void;
 };

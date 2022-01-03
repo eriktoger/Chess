@@ -74,9 +74,9 @@ Board::Board() {
 }
 
 Board::Board(std::vector<std::vector<Square>> squares,
-             std::vector<Square> possibleSquares, std::string turn,
+             std::vector<Square> legalMoves, std::string turn,
              Square currentSquare, std::vector<Move> history)
-    : squares(squares), possibleSquares(possibleSquares), turn(turn),
+    : squares(squares), legalMoves(legalMoves), turn(turn),
       currentSquare(currentSquare), history(history) {}
 
 Square Board::getSquare(int r, int c) {
@@ -88,56 +88,51 @@ Square Board::getSquare(int r, int c) {
 
 std::vector<std::vector<Square>> Board::getSquares() const { return squares; }
 
-std::vector<Square> Board::getPossibleMoves(int r, int c) {
+std::vector<Square> Board::calcAndGetLegalMoves(int r, int c) {
 
   auto row = sanitizeBoardLength(r);
   auto col = sanitizeBoardLength(c);
 
   currentSquare = squares[row][col];
 
-  possibleSquares.clear();
+  legalMoves.clear();
 
   auto isPlayersPiece = turn == currentSquare.getPiece().getColor();
 
-  if (!isPlayersPiece) {
-    return possibleSquares;
+  if (!isPlayersPiece || gameStatus != "") {
+    return legalMoves;
   }
 
   auto possibleMoves = findPossibleMoves(currentSquare, false);
-  addLegalMoves(possibleMoves);
-
-  return possibleSquares;
+  legalMoves = findLegalMoves(possibleMoves, turn, currentSquare);
+  return legalMoves;
 }
 
-void Board::addLegalMoves(const std::vector<Square> &possibleMoves) {
+std::vector<Square>
+Board::findLegalMoves(const std::vector<Square> &possibleMoves,
+                      std::string kingColor, Square takoffSquare) {
 
-  Square kingSquare = findKing();
-  const auto &type = currentSquare.getPiece().getType();
-  const auto &row = currentSquare.getRow();
-  const auto &col = currentSquare.getCol();
-
+  std::vector<Square> moves;
+  Square kingSquare = findKing(kingColor);
   for (auto possibleMove : possibleMoves) {
-    auto newBoard = Board(squares, possibleMoves, turn, currentSquare, history);
-    newBoard.movePiece(row, col, possibleMove.getRow(), possibleMove.getCol());
     bool illegalMove =
-        isMoveLegal(kingSquare, currentSquare, possibleMove, possibleMoves);
-
+        isMoveIllegal(kingSquare, takoffSquare, possibleMove, possibleMoves);
     if (!illegalMove) {
-      possibleSquares.emplace_back(possibleMove);
+      moves.emplace_back(possibleMove);
     }
   }
+  return moves;
 }
 
-bool Board::isMoveLegal(Square kingSquare, Square currentSquare,
-                        Square possibleMove,
-                        const std::vector<Square> &possibleMoves) {
+bool Board::isMoveIllegal(Square kingSquare, Square currentSquare,
+                          Square possibleMove,
+                          const std::vector<Square> &possibleMoves) {
   const auto &type = currentSquare.getPiece().getType();
   const auto &row = currentSquare.getRow();
   const auto &col = currentSquare.getCol();
 
   auto newBoard = Board(squares, possibleMoves, turn, currentSquare, history);
   newBoard.movePiece(row, col, possibleMove.getRow(), possibleMove.getCol());
-  bool illegalMove = false;
 
   // the problem is if the king tries to move, but we have set that king is
   // still in place.
@@ -156,12 +151,12 @@ bool Board::isMoveLegal(Square kingSquare, Square currentSquare,
       auto newType = newSquare.getPiece().getType();
       auto newColor = newSquare.getPiece().getColor();
       if (newType != "" && newColor != turn) {
-        std::vector<Square> tempPossibleSquares =
+        std::vector<Square> tempPossibleMoves =
             newBoard.findPossibleMoves(newSquare, true);
 
         auto kingIsAttacked =
-            find_if(begin(tempPossibleSquares), end(tempPossibleSquares),
-                    hitsKingSquare) != end(tempPossibleSquares);
+            find_if(begin(tempPossibleMoves), end(tempPossibleMoves),
+                    hitsKingSquare) != end(tempPossibleMoves);
 
         if (kingIsAttacked) {
           return true;
@@ -172,11 +167,11 @@ bool Board::isMoveLegal(Square kingSquare, Square currentSquare,
   return false;
 }
 
-Square Board::findKing() {
+Square Board::findKing(std::string color) {
   for (int i = 0; i < BOARD_LENGTH; i++) {
     for (int j = 0; j < BOARD_LENGTH; j++) {
       if (squares[i][j].getPiece().getType() == KING &&
-          squares[i][j].getPiece().getColor() == turn) {
+          squares[i][j].getPiece().getColor() == color) {
         return squares[i][j];
       }
     }
@@ -187,37 +182,37 @@ Square Board::findKing() {
 std::vector<Square> Board::findPossibleMoves(const Square &takeOffSquare,
                                              bool controllMode) {
 
-  std::vector<Square> tempPossibleSquares;
+  std::vector<Square> possibleMoves;
 
   const auto &type = takeOffSquare.getPiece().getType();
   if (type == PAWN) {
-    findPossiblePawnMoves(tempPossibleSquares, takeOffSquare, controllMode);
+    findPossiblePawnMoves(possibleMoves, takeOffSquare, controllMode);
   }
 
   if (type == BISHOP) {
-    findPossibleLinearMoves(bishopMovement, tempPossibleSquares, takeOffSquare);
+    findPossibleLinearMoves(bishopMovement, possibleMoves, takeOffSquare);
   }
 
   if (type == KNIGHT) {
-    findPossibleKnightMoves(tempPossibleSquares, takeOffSquare);
+    findPossibleKnightMoves(possibleMoves, takeOffSquare);
   }
 
   if (type == ROOK) {
-    findPossibleLinearMoves(rookMovement, tempPossibleSquares, takeOffSquare);
+    findPossibleLinearMoves(rookMovement, possibleMoves, takeOffSquare);
   }
 
   if (type == QUEEN) {
-    findPossibleLinearMoves(queenMovement, tempPossibleSquares, takeOffSquare);
+    findPossibleLinearMoves(queenMovement, possibleMoves, takeOffSquare);
   }
 
   if (type == KING) {
-    findPossibleKingMoves(tempPossibleSquares, takeOffSquare, controllMode);
+    findPossibleKingMoves(possibleMoves, takeOffSquare, controllMode);
   }
 
-  return tempPossibleSquares;
+  return possibleMoves;
 }
 
-void Board::findPossiblePawnMoves(std::vector<Square> &tempPossibleSquares,
+void Board::findPossiblePawnMoves(std::vector<Square> &possibleMoves,
                                   const Square &takeOffSquare,
                                   bool controllMode) {
 
@@ -226,21 +221,19 @@ void Board::findPossiblePawnMoves(std::vector<Square> &tempPossibleSquares,
   const auto &pieceColor = takeOffSquare.getPiece().getColor();
   const int rowMultiplier = pieceColor == WHITE ? -1 : 1;
 
-  addPawnStep(tempPossibleSquares, takeOffSquare, controllMode);
+  addPawnStep(possibleMoves, takeOffSquare, controllMode);
 
-  addPawnCapture(row + rowMultiplier, col - 1, tempPossibleSquares,
-                 takeOffSquare, controllMode);
-  addPawnCapture(row + rowMultiplier, col + 1, tempPossibleSquares,
-                 takeOffSquare, controllMode);
+  addPawnCapture(row + rowMultiplier, col - 1, possibleMoves, takeOffSquare,
+                 controllMode);
+  addPawnCapture(row + rowMultiplier, col + 1, possibleMoves, takeOffSquare,
+                 controllMode);
 
   if (!controllMode) {
-    addEnPassant(tempPossibleSquares, takeOffSquare);
+    addEnPassant(possibleMoves, takeOffSquare);
   }
-
-  // can promote
 }
 
-void Board::addEnPassant(std::vector<Square> &tempPossibleSquares,
+void Board::addEnPassant(std::vector<Square> &possibleMoves,
                          const Square &takeOffSquare) {
   const auto &row = takeOffSquare.getRow();
   const auto &col = takeOffSquare.getCol();
@@ -253,13 +246,12 @@ void Board::addEnPassant(std::vector<Square> &tempPossibleSquares,
     if (lastMove.pieceTypeMoved == PAWN && lastMove.player != turn &&
         lastMove.endRow == row && lastMove.startRow == twoRow &&
         (col + 1 == lastMove.endCol || col - 1 == lastMove.endCol)) {
-      tempPossibleSquares.emplace_back(
-          squares[row + rowMultiplier][lastMove.endCol]);
+      possibleMoves.emplace_back(squares[row + rowMultiplier][lastMove.endCol]);
     }
   }
 }
 
-void Board::addPawnStep(std::vector<Square> &tempPossibleSquares,
+void Board::addPawnStep(std::vector<Square> &possibleMoves,
                         Square takeOffSquare, bool controllMode) {
 
   const auto &row = takeOffSquare.getRow();
@@ -274,7 +266,7 @@ void Board::addPawnStep(std::vector<Square> &tempPossibleSquares,
   const auto oneSquareInfront = squares[oneRow][col];
   auto canMoveOneStep = oneSquareInfront.getPiece().getType().empty();
   if (canMoveOneStep && !controllMode) {
-    tempPossibleSquares.emplace_back(oneSquareInfront);
+    possibleMoves.emplace_back(oneSquareInfront);
   }
 
   // can move two steps
@@ -286,13 +278,12 @@ void Board::addPawnStep(std::vector<Square> &tempPossibleSquares,
         canMoveOneStep && twoSquaresInfront.getPiece().getType().empty();
 
     if (canMoveTwoSteps && !controllMode) {
-      tempPossibleSquares.emplace_back(twoSquaresInfront);
+      possibleMoves.emplace_back(twoSquaresInfront);
     }
   }
 }
 
-void Board::addPawnCapture(int row, int col,
-                           std::vector<Square> &tempPossibleSquares,
+void Board::addPawnCapture(int row, int col, std::vector<Square> &possibleMoves,
                            const Square &takeOffSquare,
                            const bool &controllMode) {
   const auto &pieceColor = takeOffSquare.getPiece().getColor();
@@ -301,14 +292,14 @@ void Board::addPawnCapture(int row, int col,
     const auto leftPiece = leftSquare.getPiece();
     if ((leftPiece.getColor() != pieceColor && leftPiece.getType() != "") ||
         controllMode) {
-      tempPossibleSquares.emplace_back(leftSquare);
+      possibleMoves.emplace_back(leftSquare);
     }
   }
 }
 
-bool Board::addPossibleSquare(int currentRow, int currentCol,
-                              std::vector<Square> &tempPossibleSquares,
-                              const Square &takeOffSquare) {
+bool Board::addPossibleMove(int currentRow, int currentCol,
+                            std::vector<Square> &possibleMoves,
+                            const Square &takeOffSquare) {
 
   if (!isInsideBoard(currentRow, currentCol)) {
     return false;
@@ -323,16 +314,16 @@ bool Board::addPossibleSquare(int currentRow, int currentCol,
   }
 
   if (currentPieceColor != "" && currentPieceColor != pieceColor) {
-    tempPossibleSquares.emplace_back(square);
+    possibleMoves.emplace_back(square);
     return false;
   }
 
-  tempPossibleSquares.emplace_back(square);
+  possibleMoves.emplace_back(square);
   return true;
 }
 
 void Board::findPossibleLinearMoves(const std::vector<Movement> &movements,
-                                    std::vector<Square> &tempPossibleSquares,
+                                    std::vector<Square> &possibleMoves,
                                     const Square &takeOffSquare) {
 
   const auto &row = takeOffSquare.getRow();
@@ -344,15 +335,15 @@ void Board::findPossibleLinearMoves(const std::vector<Movement> &movements,
     auto continueFindingMoves = true;
 
     while (continueFindingMoves) {
-      continueFindingMoves = addPossibleSquare(
-          currentRow, currentCol, tempPossibleSquares, takeOffSquare);
+      continueFindingMoves =
+          addPossibleMove(currentRow, currentCol, possibleMoves, takeOffSquare);
       currentRow += movement.rowDiff;
       currentCol += movement.colDiff;
     }
   }
 }
 
-void Board::findPossibleKnightMoves(std::vector<Square> &tempPossibleSquares,
+void Board::findPossibleKnightMoves(std::vector<Square> &possibleMoves,
                                     const Square &takeOffSquare) {
 
   const auto &row = takeOffSquare.getRow();
@@ -362,12 +353,11 @@ void Board::findPossibleKnightMoves(std::vector<Square> &tempPossibleSquares,
     auto currentRow = row + movement.rowDiff;
     auto currentCol = col + movement.colDiff;
 
-    addPossibleSquare(currentRow, currentCol, tempPossibleSquares,
-                      takeOffSquare);
+    addPossibleMove(currentRow, currentCol, possibleMoves, takeOffSquare);
   }
 }
 
-void Board::findPossibleKingMoves(std::vector<Square> &tempPossibleSquares,
+void Board::findPossibleKingMoves(std::vector<Square> &possibleMoves,
                                   const Square &takeOffSquare,
                                   bool controllMode) {
 
@@ -375,14 +365,14 @@ void Board::findPossibleKingMoves(std::vector<Square> &tempPossibleSquares,
 
   auto controlledSquares = findControlledSquares(color, controllMode);
 
-  addKingMoves(tempPossibleSquares, controlledSquares, takeOffSquare);
+  addKingMoves(possibleMoves, controlledSquares, takeOffSquare);
 
-  addShortCastle(tempPossibleSquares, controlledSquares, takeOffSquare);
+  addShortCastle(possibleMoves, controlledSquares, takeOffSquare);
 
-  addLongCastle(tempPossibleSquares, controlledSquares, takeOffSquare);
+  addLongCastle(possibleMoves, controlledSquares, takeOffSquare);
 }
 
-void Board::addKingMoves(std::vector<Square> &tempPossibleSquares,
+void Board::addKingMoves(std::vector<Square> &possibleMoves,
                          const std::vector<Square> &controlledSquares,
                          const Square &takeOffSquare) {
   const auto &row = takeOffSquare.getRow();
@@ -398,18 +388,16 @@ void Board::addKingMoves(std::vector<Square> &tempPossibleSquares,
                               s.getCol() == currentCol;
                      }) != end(controlledSquares);
     if (!squareIsControlled) {
-      addPossibleSquare(currentRow, currentCol, tempPossibleSquares,
-                        takeOffSquare);
+      addPossibleMove(currentRow, currentCol, possibleMoves, takeOffSquare);
     }
   }
 }
 
-void Board::addShortCastle(std::vector<Square> &tempPossibleSquares,
+void Board::addShortCastle(std::vector<Square> &possibleMoves,
                            const std::vector<Square> &controlledSquares,
                            const Square &takeOffSquare) {
 
   const auto &row = takeOffSquare.getRow();
-  const auto &col = takeOffSquare.getCol();
 
   auto notMoved = !squares[row][4].getPiece().getHasMoved() &&
                   !squares[row][7].getPiece().getHasMoved() &&
@@ -425,16 +413,15 @@ void Board::addShortCastle(std::vector<Square> &tempPossibleSquares,
                             (s.getRow() == row && s.getCol() == 4);
                    }) == end(controlledSquares);
   if (notMoved && freeSpace && notControlled) {
-    tempPossibleSquares.emplace_back(row, 6);
+    possibleMoves.emplace_back(row, 6);
   }
 }
 
-void Board::addLongCastle(std::vector<Square> &tempPossibleSquares,
+void Board::addLongCastle(std::vector<Square> &possibleMoves,
                           const std::vector<Square> &controlledSquares,
                           const Square &takeOffSquare) {
 
   const auto &row = takeOffSquare.getRow();
-  const auto &col = takeOffSquare.getCol();
 
   auto notMoved = !squares[row][4].getPiece().getHasMoved() &&
                   !squares[row][0].getPiece().getHasMoved() &&
@@ -450,7 +437,7 @@ void Board::addLongCastle(std::vector<Square> &tempPossibleSquares,
                             (s.getRow() == row && s.getCol() == 4);
                    }) == end(controlledSquares);
   if (notMoved && freeSpace && notControlled) {
-    tempPossibleSquares.emplace_back(row, 2);
+    possibleMoves.emplace_back(row, 2);
   }
 }
 
@@ -466,8 +453,7 @@ std::vector<Square> Board::findControlledSquares(std::string color,
       auto currentColor = square.getPiece().getColor();
       if (square.getPiece().getType() != "" && color != currentColor) {
 
-        auto controlled =
-            findPossibleMoves(Square(i, j, square.getPiece()), true);
+        auto controlled = findPossibleMoves(square, true);
 
         controlledSquares.insert(end(controlledSquares), begin(controlled),
                                  end(controlled));
@@ -479,37 +465,35 @@ std::vector<Square> Board::findControlledSquares(std::string color,
 
 void Board::changeTurn() { turn = turn == WHITE ? BLACK : WHITE; }
 
-void Board::movePiece(int startR, int startC, int endR, int endC) {
+GameInfo Board::makeAMove(int startR, int startC, int endR, int endC) {
+
   auto startRow = sanitizeBoardLength(startR);
   auto startCol = sanitizeBoardLength(startC);
   auto endRow = sanitizeBoardLength(endR);
   auto endCol = sanitizeBoardLength(endC);
 
-  auto isCurrentSquare =
-      currentSquare.getRow() == startRow && currentSquare.getCol() == startCol;
-
-  auto squareIter =
-      find_if(begin(possibleSquares), end(possibleSquares),
-              [&endRow, &endCol](const Square &square) {
-                return square.getRow() == endRow && square.getCol() == endCol;
-              });
-
-  auto isPlayersPiece = turn == currentSquare.getPiece().getColor();
-
-  if (!isCurrentSquare || squareIter == end(possibleSquares) ||
-      !isPlayersPiece) {
-    return;
+  auto moveIsInvalid = verifyMove(startRow, startCol, endRow, endCol);
+  if (moveIsInvalid) {
+    return GameInfo(gameStatus, squares);
   }
 
-  auto pieceTypeMoved = currentSquare.getPiece().getType();
-  auto pieceTypeOnLandingSquare = squareIter->getPiece().getType();
+  movePiece(startRow, startCol, endRow, endCol);
+  changeTurn();
+  gameStatus = calcGameStatus();
+  return GameInfo(gameStatus, squares);
+}
 
-  // actully move piece
+void Board::movePiece(int startRow, int startCol, int endRow, int endCol) {
 
   auto movedPiece = squares[startRow][startCol].getPiece();
   movedPiece.moved();
 
-  if (movedPiece.getType() == "Pawn" && (endRow == 0 || endRow == 7)) {
+  const auto &pieceTypeOnLandingSquare =
+      squares[endRow][endCol].getPiece().getType();
+  const auto isEnPassant =
+      moveEnPassant(startCol, endCol, pieceTypeOnLandingSquare);
+
+  if (movedPiece.getType() == PAWN && (endRow == 0 || endRow == 7)) {
     squares[endRow][endCol].replacePiece(
         Piece(promotionType, movedPiece.getColor()));
   } else {
@@ -518,22 +502,120 @@ void Board::movePiece(int startR, int startC, int endR, int endC) {
 
   squares[startRow][startCol].replacePiece(Piece());
 
-  const auto isEnPassant =
-      moveEnPassant(startCol, endCol, pieceTypeOnLandingSquare);
+  const auto &pieceTypeMoved = currentSquare.getPiece().getType();
 
   moveCastledRook(endRow, startCol, endCol, movedPiece);
 
-  // save to history
   auto pieceTypeCaptured = isEnPassant ? PAWN : pieceTypeOnLandingSquare;
   history.emplace_back(turn, startRow, startCol, endRow, endCol, pieceTypeMoved,
                        pieceTypeCaptured);
+}
 
-  // has game ended?
-  // if check and has no moves you lose
-  // no check and no moves is a draw
+bool Board::verifyMove(int startRow, int startCol, int endRow, int endCol) {
+  auto isCurrentSquare =
+      currentSquare.getRow() == startRow && currentSquare.getCol() == startCol;
 
-  // if not it is the other players turn
-  changeTurn();
+  auto squareIter =
+      find_if(begin(legalMoves), end(legalMoves),
+              [&endRow, &endCol](const Square &square) {
+                return square.getRow() == endRow && square.getCol() == endCol;
+              });
+
+  auto isPlayersPiece = turn == currentSquare.getPiece().getColor();
+
+  return !isCurrentSquare || squareIter == end(legalMoves) || !isPlayersPiece;
+}
+
+std::string Board::calcGameStatus() {
+
+  auto opponentsColor = turn == WHITE ? BLACK : WHITE;
+
+  auto king = findKing(turn);
+  auto kingIsInCheck = false;
+  auto playerCanMove = false;
+  auto searchForKing = [king](Square s) {
+    return s.getRow() == king.getRow() && s.getCol() == king.getCol();
+  };
+
+  auto yourMatingMaterial = 0;
+  auto opponentsMatingMaterial = 0;
+
+  for (int i = 0; i < BOARD_LENGTH; i++) {
+    for (int j = 0; j < BOARD_LENGTH; j++) {
+      const auto &square = squares[i][j];
+      const auto &piece = square.getPiece();
+
+      if (!kingIsInCheck) {
+        kingIsInCheck = isKingInCheck(square, opponentsColor, searchForKing);
+      }
+      if (piece.getColor() == turn && !playerCanMove) {
+        playerCanMove = canMove(square);
+      }
+      if (opponentsMatingMaterial < 3) {
+        opponentsMatingMaterial += calcMatingMaterial(piece, opponentsColor);
+      }
+      if (yourMatingMaterial < 3) {
+        opponentsMatingMaterial += calcMatingMaterial(piece, turn);
+      }
+    }
+  }
+
+  auto fiftyMoveRule = false;
+  if (history.size() > 50) {
+    auto pawnMoveOrCapture = [](Move m) {
+      return m.pieceTypeMoved == PAWN || m.pieceTypeCaptured != "";
+    };
+    fiftyMoveRule = find_if(end(history) - 50, end(history),
+                            pawnMoveOrCapture) != end(history);
+  }
+
+  // 3 fold repetition is not implemented
+
+  auto suffcientMatingMaterial =
+      yourMatingMaterial > 2 || opponentsMatingMaterial > 2;
+  if (kingIsInCheck && !playerCanMove) {
+    return turn == WHITE ? "Black won" : "White won";
+  }
+
+  if (!playerCanMove || !suffcientMatingMaterial || fiftyMoveRule) {
+    return "Draw";
+  }
+
+  return "";
+}
+
+int Board::calcMatingMaterial(const Piece &piece, const std::string &color) {
+  if (piece.getColor() == color) {
+    return 0;
+  }
+
+  if (piece.getType() == KNIGHT) {
+    return 1;
+  }
+  if (piece.getType() == BISHOP) {
+    return 2;
+  }
+  if (piece.getType() == QUEEN || piece.getType() == ROOK ||
+      piece.getType() == PAWN) {
+    return 3;
+  }
+  return 0;
+}
+
+bool Board::canMove(const Square &square) {
+  auto moves = findPossibleMoves(square, false);
+  return findLegalMoves(moves, turn, square).size() > 0;
+}
+
+bool Board::isKingInCheck(const Square &square, std::string opponentsColor,
+                          std::function<bool(Square s)> searchForKing) {
+  const auto &piece = square.getPiece();
+  if (piece.getColor() == opponentsColor && piece.getType() != "") {
+    auto controlledSquares = findPossibleMoves(square, true);
+    return find_if(begin(controlledSquares), end(controlledSquares),
+                   searchForKing) != end(controlledSquares);
+  }
+  return false;
 }
 
 void Board::moveCastledRook(int endRow, int startCol, int endCol,
@@ -556,6 +638,7 @@ bool Board::moveEnPassant(int startCol, int endCol,
   auto pieceTypeMoved = currentSquare.getPiece().getType();
   const auto isEnPassant = pieceTypeMoved == PAWN && startCol != endCol &&
                            pieceTypeOnLandingSquare == "";
+
   if (isEnPassant) {
     const auto lastMove = history.back();
     squares[lastMove.endRow][lastMove.endCol].replacePiece(Piece());

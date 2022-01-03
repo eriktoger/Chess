@@ -1,9 +1,10 @@
 #include "../chess/board.h"
 #include <gtest/gtest.h>
 
-void moveMaker(const std::string &moves, Board &board) {
+GameInfo moveMaker(const std::string &moves, Board &board) {
 
   std::string move;
+  GameInfo gameInfo;
   for (char const &c : moves) {
     if ((c >= 'a' && c <= 'h') || (c >= '1' && c <= '8')) {
       move += c;
@@ -17,12 +18,13 @@ void moveMaker(const std::string &moves, Board &board) {
       // std::cout << startRow << " " << startCol << " " << endRow << " " <<
       // endCol
       //           << std::endl;
-      board.getPossibleMoves(startRow, startCol);
-      board.movePiece(startRow, startCol, endRow, endCol);
+      board.calcAndGetLegalMoves(startRow, startCol);
+      gameInfo = board.makeAMove(startRow, startCol, endRow, endCol);
 
       move = "";
     }
   }
+  return gameInfo;
 }
 
 TEST(BoardHelper, Parser) {
@@ -85,42 +87,42 @@ TEST_F(BoardTests, EmptyFields) {
 
 TEST_F(BoardTests, PossibleMovesPawn) {
 
-  auto possibleMoves = board.getPossibleMoves(6, 4);
-  EXPECT_EQ(possibleMoves.size(), 2);
-  EXPECT_EQ(possibleMoves[0].getRow(), 5);
-  EXPECT_EQ(possibleMoves[0].getCol(), 4);
-  EXPECT_EQ(possibleMoves[1].getRow(), 4);
-  EXPECT_EQ(possibleMoves[1].getCol(), 4);
+  auto legalMoves = board.calcAndGetLegalMoves(6, 4);
+  EXPECT_EQ(legalMoves.size(), 2);
+  EXPECT_EQ(legalMoves[0].getRow(), 5);
+  EXPECT_EQ(legalMoves[0].getCol(), 4);
+  EXPECT_EQ(legalMoves[1].getRow(), 4);
+  EXPECT_EQ(legalMoves[1].getCol(), 4);
 }
 
 TEST_F(BoardTests, movePawn) {
   Board newBoard;
-  newBoard.getPossibleMoves(6, 4);
-  newBoard.movePiece(6, 4, 4, 4);
+  newBoard.calcAndGetLegalMoves(6, 4);
+  newBoard.makeAMove(6, 4, 4, 4);
   const auto &piece = newBoard.getSquare(4, 4).getPiece();
   EXPECT_EQ(piece.getType(), PAWN);
 }
 
 TEST(NewBoardTests, cannotMovePawn3Steps) {
   Board newBoard;
-  newBoard.getPossibleMoves(6, 4);
-  newBoard.movePiece(6, 4, 3, 4);
+  newBoard.calcAndGetLegalMoves(6, 4);
+  newBoard.makeAMove(6, 4, 3, 4);
   const auto &piece = newBoard.getSquare(3, 4).getPiece();
   EXPECT_EQ(piece.getType(), "");
 }
 
 TEST(NewBoardTests, cannotMoveWrongPawn) {
   Board newBoard;
-  newBoard.getPossibleMoves(6, 4);
-  newBoard.movePiece(6, 3, 4, 4);
+  newBoard.calcAndGetLegalMoves(6, 4);
+  newBoard.makeAMove(6, 3, 4, 4);
   const auto &piece = newBoard.getSquare(4, 4).getPiece();
   EXPECT_EQ(piece.getType(), "");
 }
 
 TEST(NewBoardTests, cannotMoveOpponentsPiece) {
   Board newBoard;
-  newBoard.getPossibleMoves(1, 4);
-  newBoard.movePiece(1, 4, 3, 4);
+  newBoard.calcAndGetLegalMoves(1, 4);
+  newBoard.makeAMove(1, 4, 3, 4);
   const auto &piece = newBoard.getSquare(3, 4).getPiece();
   EXPECT_EQ(piece.getType(), "");
 }
@@ -131,7 +133,7 @@ TEST(NewBoardTests, PossiblePawnMovesInvolvesCaptures) {
   moveMaker("e2-e4 d7-d5 c2-c4", newBoard);
 
   // check if d5 can capture e4 and c4
-  auto possibleMoves = newBoard.getPossibleMoves(3, 3);
+  auto possibleMoves = newBoard.calcAndGetLegalMoves(3, 3);
   auto e4Pawn =
       find_if(begin(possibleMoves), end(possibleMoves), [](const Square &s) {
         return s.getRow() == 4 && s.getCol() == 4;
@@ -151,8 +153,8 @@ TEST(NewBoardTests, EnPassant) {
   moveMaker("e2-e4 e7-e6 e4-e5 d7-d5", newBoard);
 
   // check if e5 can en passant d6
-  auto possibleMoves = newBoard.getPossibleMoves(3, 4);
-  newBoard.movePiece(3, 4, 2, 3);
+  auto possibleMoves = newBoard.calcAndGetLegalMoves(3, 4);
+  newBoard.makeAMove(3, 4, 2, 3);
 
   auto canMoveToD6 =
       find_if(begin(possibleMoves), end(possibleMoves), [](const Square &s) {
@@ -173,8 +175,8 @@ TEST(NewBoardTests, Bishop) {
   moveMaker("e2-e4 e7-e6 Bf1-c4 d7-d6", newBoard);
 
   // Bishop moves
-  auto possibleMoves = newBoard.getPossibleMoves(4, 2);
-  newBoard.movePiece(4, 2, 5, 1);
+  auto possibleMoves = newBoard.calcAndGetLegalMoves(4, 2);
+  newBoard.makeAMove(4, 2, 5, 1);
   const auto square = newBoard.getSquare(5, 1);
 
   EXPECT_EQ(possibleMoves.size(), 8);
@@ -186,7 +188,7 @@ TEST(NewBoardTests, Knight) {
   moveMaker("Kng1-h3 e7-e6 Knh3-f4 Knb8-c6", newBoard);
 
   // Knight moves
-  auto possibleMoves = newBoard.getPossibleMoves(4, 5);
+  auto possibleMoves = newBoard.calcAndGetLegalMoves(4, 5);
   EXPECT_EQ(possibleMoves.size(), 6);
 }
 
@@ -195,7 +197,7 @@ TEST(NewBoardTests, Rooks) {
   moveMaker("a2-a4 a7-a5 Ra1-a3 Ra8-Ra6", newBoard);
 
   // Rook moves
-  auto possibleMoves = newBoard.getPossibleMoves(5, 0);
+  auto possibleMoves = newBoard.calcAndGetLegalMoves(5, 0);
   EXPECT_EQ(possibleMoves.size(), 9);
 }
 
@@ -204,7 +206,7 @@ TEST(NewBoardTests, Queens) {
   moveMaker("d2-d4 d7-d5 Qd1-d3 Qd8-d6", newBoard);
 
   // Queen moves
-  auto possibleMoves = newBoard.getPossibleMoves(5, 3);
+  auto possibleMoves = newBoard.calcAndGetLegalMoves(5, 3);
   EXPECT_EQ(possibleMoves.size(), 16);
 }
 
@@ -213,14 +215,14 @@ TEST(NewBoardTests, ShortCastle) {
   moveMaker("g2-g3 g7-g6 Bf1-g2 Bf8-g7 Kng1-f3 Kng8-f6", newBoard);
 
   // white king short castle
-  auto whiteKingMoves = newBoard.getPossibleMoves(7, 4);
+  auto whiteKingMoves = newBoard.calcAndGetLegalMoves(7, 4);
   EXPECT_EQ(whiteKingMoves.size(), 2);
-  newBoard.movePiece(7, 4, 7, 6);
+  newBoard.makeAMove(7, 4, 7, 6);
 
   // black king short castle
-  auto blackKingMoves = newBoard.getPossibleMoves(0, 4);
+  auto blackKingMoves = newBoard.calcAndGetLegalMoves(0, 4);
   EXPECT_EQ(blackKingMoves.size(), 2);
-  newBoard.movePiece(0, 4, 0, 6);
+  newBoard.makeAMove(0, 4, 0, 6);
 
   auto emptyWhiteCorner = newBoard.getSquare(7, 7);
   auto emptyBlackCorner = newBoard.getSquare(0, 7);
@@ -235,7 +237,7 @@ TEST(NewBoardTests, IllegalShortCastleBecauseRookMoved) {
       newBoard);
 
   // white king tries to short castle
-  auto whiteKingMoves = newBoard.getPossibleMoves(7, 4);
+  auto whiteKingMoves = newBoard.calcAndGetLegalMoves(7, 4);
   EXPECT_EQ(whiteKingMoves.size(), 1);
 }
 
@@ -245,7 +247,7 @@ TEST(NewBoardTests, IllegalShortCastleBecauseSquareIsAttacked) {
   moveMaker("e2-e4 e7-e5 Kng1-f3 b7-b6 Bf1-a6 Bc8-a6", newBoard);
 
   // white tries to short castle
-  auto whiteKingMoves = newBoard.getPossibleMoves(7, 4);
+  auto whiteKingMoves = newBoard.calcAndGetLegalMoves(7, 4);
   EXPECT_EQ(whiteKingMoves.size(), 0);
 }
 
@@ -257,7 +259,7 @@ TEST(NewBoardTests, IllegalShortCastleBecauseKingMoved) {
       newBoard);
 
   // white tries to short castle
-  auto whiteKingMoves = newBoard.getPossibleMoves(7, 4);
+  auto whiteKingMoves = newBoard.calcAndGetLegalMoves(7, 4);
   EXPECT_EQ(whiteKingMoves.size(), 1);
 }
 
@@ -269,7 +271,7 @@ TEST(NewBoardTests, IllegalShortCastleBecauseKingIsCheck) {
       newBoard);
 
   // white tries to short castle
-  auto whiteKingMoves = newBoard.getPossibleMoves(7, 4);
+  auto whiteKingMoves = newBoard.calcAndGetLegalMoves(7, 4);
   EXPECT_EQ(whiteKingMoves.size(), 1);
 }
 
@@ -279,7 +281,7 @@ TEST(NewBoardTests, IllegalShortCastleBecauseKingLandsInCheck) {
   moveMaker("g2-g3 c7-c6 Bf1-g2 Qd8-b6 f2-f4 f7-f5 Kng1-f3 Kng8-f6", newBoard);
 
   // white tries to short castle
-  auto whiteKingMoves = newBoard.getPossibleMoves(7, 4);
+  auto whiteKingMoves = newBoard.calcAndGetLegalMoves(7, 4);
   EXPECT_EQ(whiteKingMoves.size(), 1);
 }
 
@@ -290,14 +292,14 @@ TEST(NewBoardTests, LongCastle) {
       newBoard);
 
   // white king long castle
-  auto whiteKingMoves = newBoard.getPossibleMoves(7, 4);
+  auto whiteKingMoves = newBoard.calcAndGetLegalMoves(7, 4);
   EXPECT_EQ(whiteKingMoves.size(), 3);
-  newBoard.movePiece(7, 4, 7, 2);
+  newBoard.makeAMove(7, 4, 7, 2);
 
   // black king long castle
-  auto blackKingMoves = newBoard.getPossibleMoves(0, 4);
+  auto blackKingMoves = newBoard.calcAndGetLegalMoves(0, 4);
   EXPECT_EQ(blackKingMoves.size(), 3);
-  newBoard.movePiece(0, 4, 0, 2);
+  newBoard.makeAMove(0, 4, 0, 2);
 
   auto emptyWhiteCorner = newBoard.getSquare(7, 0);
   auto emptyBlackCorner = newBoard.getSquare(0, 0);
@@ -313,7 +315,7 @@ TEST(NewBoardTests, IllegalLongCastleBecauseRookMoved) {
             newBoard);
 
   // white king long castle
-  auto whiteKingMoves = newBoard.getPossibleMoves(7, 4);
+  auto whiteKingMoves = newBoard.calcAndGetLegalMoves(7, 4);
   EXPECT_EQ(whiteKingMoves.size(), 2);
 }
 
@@ -325,7 +327,7 @@ TEST(NewBoardTests, IllegalLongCastleBecauseKingMoved) {
             newBoard);
 
   // white long castle
-  auto whiteKingMoves = newBoard.getPossibleMoves(7, 4);
+  auto whiteKingMoves = newBoard.calcAndGetLegalMoves(7, 4);
   EXPECT_EQ(whiteKingMoves.size(), 2);
 }
 
@@ -337,7 +339,7 @@ TEST(NewBoardTests, IllegalLongCastleBecauseKingIsChecked) {
       newBoard);
 
   // white long castle
-  auto whiteKingMoves = newBoard.getPossibleMoves(7, 4);
+  auto whiteKingMoves = newBoard.calcAndGetLegalMoves(7, 4);
   EXPECT_EQ(whiteKingMoves.size(), 1);
 }
 TEST(NewBoardTests, IllegalLongCastleBecauseBecauseSquareIsAttacked) {
@@ -348,7 +350,7 @@ TEST(NewBoardTests, IllegalLongCastleBecauseBecauseSquareIsAttacked) {
       newBoard);
 
   // white long castle
-  auto whiteKingMoves = newBoard.getPossibleMoves(7, 4);
+  auto whiteKingMoves = newBoard.calcAndGetLegalMoves(7, 4);
   EXPECT_EQ(whiteKingMoves.size(), 0);
 }
 
@@ -358,7 +360,7 @@ TEST(NewBoardTests, PinnedPieceCannotMove) {
   moveMaker("e2-e4 d7-d5 Qd1-h5", newBoard);
 
   // white long castle
-  auto fPawn = newBoard.getPossibleMoves(1, 5);
+  auto fPawn = newBoard.calcAndGetLegalMoves(1, 5);
   EXPECT_EQ(fPawn.size(), 0);
 }
 
@@ -372,3 +374,23 @@ TEST(NewBoardTests, PromotePawn) {
   auto knight = newBoard.getSquare(0, 0);
   EXPECT_EQ(knight.getPiece().getType(), KNIGHT);
 }
+
+TEST(NewBoardTests, WhiteCheckMatesBlack) {
+  Board newBoard;
+  auto gameInfo =
+      moveMaker("e2-e4 e7-e5 Qd1-h5 a7-a6 Bf1-c4 a6-a5 Qh5-f7", newBoard);
+
+  EXPECT_EQ(gameInfo.getStatus(), "White won");
+}
+
+TEST(NewBoardTests, StaleMateDraw) {
+  Board newBoard;
+  auto gameInfo = moveMaker("e2-e3 a7-a5 Qd1-h5  Ra8-a6 Qh5-a5  h7-h5 h2-h4 "
+                            "Ra6-h6 Qa5-c7 f7-f6 Qc7-d7 Ke8-f7 Qd7-b7 Qd8-d3 "
+                            "Qb7-b8 Qd3-h7 Qb8-c8 Kf7-g6 Qc8-e6",
+                            newBoard);
+
+  EXPECT_EQ(gameInfo.getStatus(), "Draw");
+}
+
+// insufficent material draw

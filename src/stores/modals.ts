@@ -2,7 +2,9 @@ import { writable } from 'svelte/store';
 
 export const showPromotionModal = writable(false);
 
-export const promotionModalPlacement = writable({ left: 0, top: 0, width: 0 });
+export const gameStatus = writable('');
+
+export const modalPlacement = writable({ left: 0, top: 0, width: 0 });
 
 export const promotionColor = writable('White');
 

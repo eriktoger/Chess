@@ -2,9 +2,10 @@ import type { BoardPosition, SquareArray, Images, RowArray, TModule } from '../t
 import { getImage } from '../functions/helpers';
 import {
 	showPromotionModal,
-	promotionModalPlacement,
+	modalPlacement,
 	promotionColor,
-	onChoosePromotion
+	onChoosePromotion,
+	gameStatus
 } from '../stores/modals';
 class Board {
 	canvas: HTMLCanvasElement;
@@ -29,6 +30,9 @@ class Board {
 		this.canvas.height = this.squareSize * 8;
 		this.canvas.width = this.squareSize * 8;
 		this.context = this.canvas.getContext('2d');
+
+		const { left, top, width } = this.canvas.getBoundingClientRect();
+		modalPlacement.set({ left, top, width });
 
 		this.canvas.addEventListener('mousedown', (event) => {
 			this.onMouseDown(event);
@@ -208,12 +212,14 @@ class Board {
 					return;
 				}
 
-				this.squares = this.Module.movePiece(
+				const { status, squares } = this.Module.movePiece(
 					this.currentSquare.row,
 					this.currentSquare.col,
 					this.selectedSquare.row,
 					this.selectedSquare.col
 				);
+				this.squares = squares;
+				gameStatus.set(status);
 			}
 			this.currentSquare = null;
 			this.mouseDown = false;
@@ -222,21 +228,21 @@ class Board {
 	};
 
 	onPromotion = (): void => {
-		const { left, top, width } = this.canvas.getBoundingClientRect();
-		promotionModalPlacement.set({ left, top, width });
 		promotionColor.set(this.Module.getTurn());
 
 		onChoosePromotion.set((type: string) => {
 			this.Module.setPromotionType(type);
-			this.squares = this.Module.movePiece(
+			const { status, squares } = this.Module.movePiece(
 				this.currentSquare.row,
 				this.currentSquare.col,
 				this.selectedSquare.row,
 				this.selectedSquare.col
 			);
+			this.squares = squares;
 			this.currentSquare = null;
 			this.mouseDown = false;
 			this.drawBoard();
+			gameStatus.set(status);
 			showPromotionModal.set(false);
 		});
 
