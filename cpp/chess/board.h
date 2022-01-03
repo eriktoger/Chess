@@ -33,6 +33,7 @@ private:
 
   std::vector<Square> findPossibleMoves(const Square &takeOffSquare,
                                         bool controllMode);
+
   void findPossiblePawnMoves(std::vector<Square> &tempPossibleSquares,
                              const Square &takeOffSquare, bool controllMode);
 
@@ -49,8 +50,10 @@ private:
   void findPossibleLinearMoves(const std::vector<Movement> &movements,
                                std::vector<Square> &tempPossibleSquares,
                                const Square &takeOffSquare);
+
   void findPossibleKnightMoves(std::vector<Square> &tempPossibleSquares,
                                const Square &takeOffSquare);
+
   void findPossibleKingMoves(std::vector<Square> &tempPossibleSquares,
                              const Square &takeOffSquare, bool controllMode);
 
@@ -71,6 +74,7 @@ private:
                        const Square &takeOffSquare);
 
   Square findKing(std::string color);
+
   std::vector<Square> findLegalMoves(const std::vector<Square> &possibleMoves,
                                      std::string kingColor,
                                      Square takoffSquare);
@@ -84,14 +88,18 @@ private:
 
   bool moveEnPassant(int startCol, int endCol,
                      std::string pieceTypeOnLandingSquare);
+
   void moveCastledRook(int endRow, int startCol, int endCol,
                        const Piece &movedPiece);
+
   void movePiece(int startRow, int startCol, int endRow, int endCol);
+
   std::string calcGameStatus();
 
   bool verifyMove(int startRow, int startCol, int endRow, int endCol);
 
   bool canMove(const Square &square);
+
   bool isKingInCheck(const Square &square, std::string opponentsColor,
                      std::function<bool(Square s)> searchForKing);
 
@@ -99,13 +107,17 @@ private:
 
 public:
   Board();
+
   Board(std::vector<std::vector<Square>> squares,
         std::vector<Square> possibleSquares, std::string turn,
         Square currentSquare, std::vector<Move> history);
+
   Square getSquare(int row, int col);
+
   std::vector<std::vector<Square>> getSquares() const;
 
   std::string getTurn();
+
   std::vector<Square> calcAndGetLegalMoves(int row, int col);
 
   void setPromotionType(std::string type);

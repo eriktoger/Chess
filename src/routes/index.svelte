@@ -12,7 +12,11 @@
 	onMount(() => {
 		Module.onRuntimeInitialized = async () => {
 			const images = await loadImages();
-			new Board(Module, images);
+			const board = new Board(Module, images);
+
+			window.addEventListener('resize', () => {
+				board.resizeBoard();
+			});
 		};
 	});
 </script>

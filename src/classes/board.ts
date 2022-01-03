@@ -7,6 +7,7 @@ import {
 	onChoosePromotion,
 	gameStatus
 } from '../stores/modals';
+
 class Board {
 	canvas: HTMLCanvasElement;
 	context: CanvasRenderingContext2D;
@@ -26,13 +27,10 @@ class Board {
 		this.images = images;
 
 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-		this.squareSize = Math.min(window.innerHeight - 300, window.innerWidth - 100) / 8;
-		this.canvas.height = this.squareSize * 8;
-		this.canvas.width = this.squareSize * 8;
+
 		this.context = this.canvas.getContext('2d');
 
-		const { left, top, width } = this.canvas.getBoundingClientRect();
-		modalPlacement.set({ left, top, width });
+		this.resizeBoard();
 
 		this.canvas.addEventListener('mousedown', (event) => {
 			this.onMouseDown(event);
@@ -45,9 +43,18 @@ class Board {
 		this.canvas.addEventListener('mouseup', (event) => {
 			this.onMouseUp(event);
 		});
+	}
+
+	resizeBoard = (): void => {
+		this.squareSize = Math.min(window.innerHeight - 300, window.innerWidth - 100) / 8;
+		this.canvas.height = this.squareSize * 8;
+		this.canvas.width = this.squareSize * 8;
+
+		const { left, top, width } = this.canvas.getBoundingClientRect();
+		modalPlacement.set({ left, top, width });
 
 		this.drawBoard();
-	}
+	};
 
 	drawPiece = (image: HTMLImageElement, row: number, col: number): void => {
 		this.context.drawImage(
