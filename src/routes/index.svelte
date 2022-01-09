@@ -37,13 +37,16 @@
 
 <h1>Chess</h1>
 
-<div id="container">
+<div class="container">
 	<canvas id="canvas" />
 </div>
 
 <style>
-	#container {
+	.container {
 		border: 8px solid rgba(102, 19, 19);
 		display: table;
+	}
+	#canvas {
+		vertical-align: middle;
 	}
 </style>
