@@ -1,12 +1,21 @@
 <script lang="ts">
 	import { gameStatus } from '../../stores/modals';
+	import { setPlayerPerspective, createNewGame } from '../../stores/game';
 	import CenterModal from '../common/CenterModal.svelte';
+
+	const onClick = (perspective: string) => {
+		gameStatus.set('');
+		$setPlayerPerspective(perspective);
+		$createNewGame();
+	};
 </script>
 
 <CenterModal>
 	<div class="container">
-		<p>{$gameStatus}</p>
-		<button>New Game</button>
+		<h3 class="header">{$gameStatus}</h3>
+		<div class="break" />
+		<button class="button" on:click={() => onClick('White')}>Play as White</button>
+		<button class="button" on:click={() => onClick('Black')}>Play as Black</button>
 	</div>
 </CenterModal>
 
@@ -14,5 +23,17 @@
 	.container {
 		display: flex;
 		justify-content: space-around;
+		flex-wrap: wrap;
+		margin: 0;
+	}
+	.break {
+		flex-basis: 100%;
+		height: 0;
+	}
+	.button {
+		padding: 10px;
+	}
+	.header {
+		margin-top: 0;
 	}
 </style>

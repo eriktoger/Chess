@@ -37,6 +37,7 @@ export type TModule = {
 	) => { status: string; squares: RowArray };
 	getTurn: () => string;
 	setPromotionType: (type: string) => void;
+	newGame: () => void;
 };
 
 export type Images = {

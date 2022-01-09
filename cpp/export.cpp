@@ -16,6 +16,8 @@ GameInfo movePiece(int startRow, int startCol, int endRow, int endCol) {
 std::string getTurn() { return board.getTurn(); }
 void setPromotionType(std::string type) { board.setPromotionType(type); }
 
+void newGame() { board = Board(); }
+
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(my_module) {
@@ -46,4 +48,5 @@ EMSCRIPTEN_BINDINGS(my_module) {
   emscripten::function("movePiece", &movePiece);
   emscripten::function("setPromotionType", &setPromotionType);
   emscripten::function("getTurn", &getTurn);
+  emscripten::function("newGame", &newGame);
 }

@@ -7,6 +7,7 @@ import {
 	onChoosePromotion,
 	gameStatus
 } from '../stores/modals';
+import { setPlayerPerspective, createNewGame } from '../stores/game';
 
 class Board {
 	canvas: HTMLCanvasElement;
@@ -19,18 +20,29 @@ class Board {
 	selectedSquare: BoardPosition;
 	images: Images;
 	squares: RowArray;
+	playerPerspective: string;
 
 	constructor(Module: TModule, images: Images) {
 		this.Module = Module;
 		this.squares = this.Module.getSquares();
-
 		this.images = images;
+		this.playerPerspective = 'White';
 
 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
 
 		this.context = this.canvas.getContext('2d');
 
 		this.resizeBoard();
+
+		setPlayerPerspective.set((perspective) => {
+			this.playerPerspective = perspective;
+		});
+
+		createNewGame.set(() => {
+			this.Module.newGame();
+			this.squares = this.Module.getSquares();
+			this.drawBoard();
+		});
 
 		this.canvas.addEventListener('mousedown', (event) => {
 			this.onMouseDown(event);
@@ -57,10 +69,12 @@ class Board {
 	};
 
 	drawPiece = (image: HTMLImageElement, row: number, col: number): void => {
+		const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
+
 		this.context.drawImage(
 			image,
-			this.squareSize * col + 2.5,
-			this.squareSize * row + 5,
+			this.squareSize * flippedCol + 2.5,
+			this.squareSize * flippedRow + 5,
 			this.squareSize - 5,
 			this.squareSize - 5
 		);
@@ -76,9 +90,10 @@ class Board {
 					color: squareColor
 				} = this.squares.get(r).get(c);
 				this.context.fillStyle = squareColor === 'White' ? 'white' : 'grey';
+				const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
 				this.context.fillRect(
-					col * this.squareSize,
-					row * this.squareSize,
+					flippedCol * this.squareSize,
+					flippedRow * this.squareSize,
 					this.squareSize,
 					this.squareSize
 				);
@@ -99,8 +114,9 @@ class Board {
 		const { left, top } = this.canvas.getBoundingClientRect();
 		const row = Math.floor((event.clientY - top) / this.squareSize);
 		const col = Math.floor((event.clientX - left) / this.squareSize);
-		this.possibleMoves = this.Module.getPossibleMoves(row, col);
-		this.currentSquare = { row, col };
+		const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
+		this.possibleMoves = this.Module.getPossibleMoves(flippedRow, flippedCol);
+		this.currentSquare = { row: flippedRow, col: flippedCol };
 	};
 
 	drawPossibleMoves = (type: string, color: string): void => {
@@ -108,12 +124,14 @@ class Board {
 			const image = getImage(type, color, this.images);
 			const { row, col } = this.possibleMoves.get(i);
 			const square = this.squares.get(row).get(col);
+
 			if (square.piece.type !== '') {
+				const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
 				this.context.fillStyle = 'red';
 				this.context.globalAlpha = 0.25;
 				this.context.fillRect(
-					square.col * this.squareSize,
-					square.row * this.squareSize,
+					flippedCol * this.squareSize,
+					flippedRow * this.squareSize,
 					this.squareSize,
 					this.squareSize
 				);
@@ -142,11 +160,15 @@ class Board {
 	};
 
 	highlightSquare = (): void => {
+		const { row: flippedRow, col: flippedCol } = this.flipPosition(
+			this.selectedSquare?.row,
+			this.selectedSquare?.col
+		);
 		this.context.beginPath();
 		this.context.lineWidth = 4;
 		this.context.rect(
-			this.selectedSquare?.col * this.squareSize,
-			this.selectedSquare?.row * this.squareSize,
+			flippedCol * this.squareSize,
+			flippedRow * this.squareSize,
 			this.squareSize,
 			this.squareSize
 		);
@@ -157,10 +179,10 @@ class Board {
 		const { left, top } = this.canvas.getBoundingClientRect();
 		const r = Math.floor((event.clientY - top) / this.squareSize);
 		const c = Math.floor((event.clientX - left) / this.squareSize);
-
+		const { row: flippedRow, col: flippedCol } = this.flipPosition(r, c);
 		for (let i = 0; i < this.possibleMoves.size(); i++) {
 			const { row, col } = this.possibleMoves.get(i);
-			if (r === row && c === col) {
+			if (flippedRow === row && flippedCol === col) {
 				this.selectedSquare = { row, col };
 				return;
 			}
@@ -205,10 +227,11 @@ class Board {
 	onMouseUp = (event: MouseEvent): void => {
 		if (this.mouseDown) {
 			const { left, top } = this.canvas.getBoundingClientRect();
+
 			const row = Math.floor((event.clientY - top) / this.squareSize);
 			const col = Math.floor((event.clientX - left) / this.squareSize);
-
-			if (row === this.selectedSquare?.row && col == this.selectedSquare?.col) {
+			const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
+			if (flippedRow === this.selectedSquare?.row && flippedCol == this.selectedSquare?.col) {
 				const isPawn =
 					this.squares.get(this.currentSquare.row).get(this.currentSquare.col).piece.type ===
 					'Pawn';
@@ -218,7 +241,6 @@ class Board {
 					this.onPromotion();
 					return;
 				}
-
 				const { status, squares } = this.Module.movePiece(
 					this.currentSquare.row,
 					this.currentSquare.col,
@@ -255,6 +277,9 @@ class Board {
 
 		showPromotionModal.set(true);
 	};
+
+	flipPosition = (row: number, col: number): BoardPosition =>
+		this.playerPerspective === 'White' ? { row, col } : { row: 7 - row, col: 7 - col };
 }
 
 export default Board;

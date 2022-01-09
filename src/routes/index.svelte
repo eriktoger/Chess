@@ -6,9 +6,10 @@
 	import { loadImages } from '../functions/helpers';
 	import { getModule } from '../functions/module';
 	import Board from '../classes/board';
+	import LoadingScreen from '../components/LoadingScreen/LoadingScreen.svelte';
 
 	const Module = getModule();
-
+	let loading = true;
 	onMount(() => {
 		Module.onRuntimeInitialized = async () => {
 			const images = await loadImages();
@@ -17,9 +18,14 @@
 			window.addEventListener('resize', () => {
 				board.resizeBoard();
 			});
+			loading = false;
 		};
 	});
 </script>
+
+{#if loading}
+	<LoadingScreen />
+{/if}
 
 {#if $showPromotionModal}
 	<PromotionModal />
@@ -30,7 +36,7 @@
 {/if}
 
 <h1>Chess</h1>
-<p>Welcome to my Chess page!</p>
+
 <div id="container">
 	<canvas id="canvas" />
 </div>
