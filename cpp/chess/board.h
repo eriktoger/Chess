@@ -4,6 +4,7 @@
 #include "move.h"
 #include "square.h"
 #include <functional>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -28,6 +29,7 @@ private:
   std::vector<Move> history;
   std::string promotionType;
   std::string gameStatus;
+  std::map<std::string, int> positions;
 
   void changeTurn();
 
@@ -104,6 +106,8 @@ private:
                      std::function<bool(Square s)> searchForKing);
 
   int calcMatingMaterial(const Piece &piece, const std::string &color);
+
+  bool calcThreeFoldRepetition();
 
 public:
   Board();

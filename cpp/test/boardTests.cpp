@@ -393,4 +393,13 @@ TEST(NewBoardTests, StaleMateDraw) {
   EXPECT_EQ(gameInfo.getStatus(), "Draw");
 }
 
+TEST(NewBoardTests, ThreeFoldRepetition) {
+  Board newBoard;
+  auto gameInfo = moveMaker("Sg1-f3 Sg8-f6 Sf3-g1  Sf6-g8 Sg1-f3 Sg8-f6 Sf3-g1 "
+                            " Sf6-g8 Sg1-f3",
+                            newBoard);
+
+  EXPECT_EQ(gameInfo.getStatus(), "Draw");
+}
+
 // insufficent material draw

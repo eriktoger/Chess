@@ -569,7 +569,10 @@ std::string Board::calcGameStatus() {
                             pawnMoveOrCapture) != end(history);
   }
 
-  // 3 fold repetition is not implemented
+  const auto drawByRepetition = calcThreeFoldRepetition();
+  if (drawByRepetition) {
+    return "Draw";
+  }
 
   auto suffcientMatingMaterial =
       yourMatingMaterial > 2 || opponentsMatingMaterial > 2;
@@ -582,6 +585,32 @@ std::string Board::calcGameStatus() {
   }
 
   return "";
+}
+
+bool Board::calcThreeFoldRepetition() {
+  std::string position = "";
+  for (int i = 0; i < BOARD_LENGTH; i++) {
+    for (int j = 0; j < BOARD_LENGTH; j++) {
+      const auto &type = squares[i][j].getPiece().getType();
+      if (type != "") {
+        position += type.at(0);
+        position += std::to_string(i);
+        position += std::to_string(j);
+      }
+    }
+  }
+  position += turn;
+  // We dont check for enpassant or castling rights
+
+  if (positions.count(position)) {
+    positions.at(position)++;
+    if (positions.at(position) >= 3) {
+      return true;
+    }
+  } else {
+    positions.insert({position, 1});
+  }
+  return false;
 }
 
 int Board::calcMatingMaterial(const Piece &piece, const std::string &color) {
