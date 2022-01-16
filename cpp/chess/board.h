@@ -5,6 +5,7 @@
 #include "square.h"
 #include <functional>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -111,6 +112,8 @@ private:
 
 public:
   Board();
+
+  Board(std::shared_ptr<Board> boardPtr);
 
   Board(std::vector<std::vector<Square>> squares,
         std::vector<Square> possibleSquares, std::string turn,

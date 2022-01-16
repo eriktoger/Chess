@@ -1,4 +1,15 @@
 #include "board.h"
+
+Board::Board(std::shared_ptr<Board> boardPtr) {
+
+  squares = boardPtr->getSquares();
+  turn = boardPtr->getTurn();
+  history = boardPtr->history;
+  promotionType = boardPtr->promotionType;
+  gameStatus = boardPtr->gameStatus;
+  positions = boardPtr->positions;
+}
+
 Board::Board() {
   std::vector<std::vector<Square>> vec(8, std::vector<Square>(8));
 

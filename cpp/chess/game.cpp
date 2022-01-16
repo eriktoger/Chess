@@ -2,11 +2,12 @@
 
 Game::Game() { board = std::make_shared<Board>(); }
 
-void Game::newGame(std::string playerColor) {
+void Game::newGame(std::string playerColor, int timePerMove) {
   this->playerColor = playerColor;
   computerColor = playerColor == WHITE ? BLACK : WHITE;
   board = std::make_shared<Board>();
-  computer = Computer(board, computerColor);
+  computer =
+      Computer(board, computerColor, std::chrono::milliseconds(timePerMove));
 }
 
 GameInfo Game::makeAMove(int startR, int startC, int endR, int endC) {

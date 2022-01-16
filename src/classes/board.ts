@@ -1,3 +1,4 @@
+import { get } from 'svelte/store';
 import type { BoardPosition, SquareArray, Images, RowArray, GamePtr } from '../types/chess';
 import { getImage } from '../functions/helpers';
 import {
@@ -38,8 +39,8 @@ class Board {
 			this.playerPerspective = perspective;
 		});
 
-		createNewGame.set(() => {
-			this.gamePtr.newGame(this.playerPerspective);
+		createNewGame.set((timePerMove: number) => {
+			this.gamePtr.newGame(this.playerPerspective, timePerMove);
 			if (this.playerPerspective === 'Black') {
 				this.makeComputerMove();
 			}
@@ -285,10 +286,15 @@ class Board {
 	};
 
 	makeComputerMove = (): void => {
-		const { status, squares } = this.gamePtr.makeComputerMove();
-		this.squares = squares;
-		gameStatus.set(status);
 		this.drawBoard();
+		setTimeout(() => {
+			if (get(gameStatus) === '') {
+				const { status, squares } = this.gamePtr.makeComputerMove();
+				this.squares = squares;
+				gameStatus.set(status);
+				this.drawBoard();
+			}
+		}, 100);
 	};
 
 	flipPosition = (row: number, col: number): BoardPosition =>

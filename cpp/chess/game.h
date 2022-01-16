@@ -16,7 +16,7 @@ public:
 
   GameInfo makeComputerMove();
 
-  void newGame(std::string color);
+  void newGame(std::string color, int timePerMove);
 
   GameInfo makeAMove(int startR, int startC, int endR, int endC);
 
