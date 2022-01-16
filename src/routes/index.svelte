@@ -13,7 +13,7 @@
 	onMount(() => {
 		Module.onRuntimeInitialized = async () => {
 			const images = await loadImages();
-			const board = new Board(Module, images);
+			const board = new Board(Module.getGame(), images);
 
 			window.addEventListener('resize', () => {
 				board.resizeBoard();

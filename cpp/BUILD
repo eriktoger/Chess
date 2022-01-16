@@ -6,6 +6,18 @@ cc_library(
     hdrs = glob(["chess/*.h"]),
 )
 
+cc_library(
+    name = "game",
+    srcs = glob(["chess/*.cpp"]),
+    hdrs = glob(["chess/*.h"]),
+)
+
+cc_binary(
+    name = "gameTests",
+    srcs = ["test/gameTests.cpp"],
+    deps=["@com_google_googletest//:gtest_main",":game"],
+)
+
 cc_binary(
     name = "boardTests",
     srcs = ["test/boardTests.cpp"],

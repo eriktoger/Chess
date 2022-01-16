@@ -79,35 +79,6 @@ Board::Board(std::vector<std::vector<Square>> squares,
     : squares(squares), legalMoves(legalMoves), turn(turn),
       currentSquare(currentSquare), history(history) {}
 
-Square Board::getSquare(int r, int c) {
-
-  auto row = sanitizeBoardLength(r);
-  auto col = sanitizeBoardLength(c);
-  return squares[row][col];
-}
-
-std::vector<std::vector<Square>> Board::getSquares() const { return squares; }
-
-std::vector<Square> Board::calcAndGetLegalMoves(int r, int c) {
-
-  auto row = sanitizeBoardLength(r);
-  auto col = sanitizeBoardLength(c);
-
-  currentSquare = squares[row][col];
-
-  legalMoves.clear();
-
-  auto isPlayersPiece = turn == currentSquare.getPiece().getColor();
-
-  if (!isPlayersPiece || gameStatus != "") {
-    return legalMoves;
-  }
-
-  auto possibleMoves = findPossibleMoves(currentSquare, false);
-  legalMoves = findLegalMoves(possibleMoves, turn, currentSquare);
-  return legalMoves;
-}
-
 std::vector<Square>
 Board::findLegalMoves(const std::vector<Square> &possibleMoves,
                       std::string kingColor, Square takoffSquare) {
@@ -465,24 +436,6 @@ std::vector<Square> Board::findControlledSquares(std::string color,
 
 void Board::changeTurn() { turn = turn == WHITE ? BLACK : WHITE; }
 
-GameInfo Board::makeAMove(int startR, int startC, int endR, int endC) {
-
-  auto startRow = sanitizeBoardLength(startR);
-  auto startCol = sanitizeBoardLength(startC);
-  auto endRow = sanitizeBoardLength(endR);
-  auto endCol = sanitizeBoardLength(endC);
-
-  auto moveIsInvalid = verifyMove(startRow, startCol, endRow, endCol);
-  if (moveIsInvalid) {
-    return GameInfo(gameStatus, squares);
-  }
-
-  movePiece(startRow, startCol, endRow, endCol);
-  changeTurn();
-  gameStatus = calcGameStatus();
-  return GameInfo(gameStatus, squares);
-}
-
 void Board::movePiece(int startRow, int startCol, int endRow, int endCol) {
 
   auto movedPiece = squares[startRow][startCol].getPiece();
@@ -561,27 +514,33 @@ std::string Board::calcGameStatus() {
   }
 
   auto fiftyMoveRule = false;
-  if (history.size() > 50) {
+  if (history.size() > 100) {
     auto pawnMoveOrCapture = [](Move m) {
       return m.pieceTypeMoved == PAWN || m.pieceTypeCaptured != "";
     };
-    fiftyMoveRule = find_if(end(history) - 50, end(history),
-                            pawnMoveOrCapture) != end(history);
+    fiftyMoveRule = find_if(end(history) - 100, end(history),
+                            pawnMoveOrCapture) == end(history);
   }
 
   const auto drawByRepetition = calcThreeFoldRepetition();
   if (drawByRepetition) {
-    return "Draw";
+    return DRAW_BY_REPETITION;
+  }
+
+  if (kingIsInCheck && !playerCanMove) {
+    return turn == WHITE ? BLACK_WON : WHITE_WON;
   }
 
   auto suffcientMatingMaterial =
       yourMatingMaterial > 2 || opponentsMatingMaterial > 2;
-  if (kingIsInCheck && !playerCanMove) {
-    return turn == WHITE ? "Black won" : "White won";
+  if (!playerCanMove) {
+    return DRAW_BY_STALEMATE;
   }
-
-  if (!playerCanMove || !suffcientMatingMaterial || fiftyMoveRule) {
-    return "Draw";
+  if (!suffcientMatingMaterial) {
+    return DRAW_BY_INSUFFICENT_MATING_MATERIAL;
+  }
+  if (fiftyMoveRule) {
+    return DRAW_BY_50_MOVE_RULE;
   }
 
   return "";
@@ -677,4 +636,48 @@ bool Board::moveEnPassant(int startCol, int endCol,
 
 std::string Board::getTurn() { return turn; }
 
+GameInfo Board::makeAMove(int startR, int startC, int endR, int endC) {
+
+  auto startRow = sanitizeBoardLength(startR);
+  auto startCol = sanitizeBoardLength(startC);
+  auto endRow = sanitizeBoardLength(endR);
+  auto endCol = sanitizeBoardLength(endC);
+
+  auto moveIsInvalid = verifyMove(startRow, startCol, endRow, endCol);
+  if (moveIsInvalid) {
+    return GameInfo(gameStatus, squares);
+  }
+
+  movePiece(startRow, startCol, endRow, endCol);
+  changeTurn();
+  gameStatus = calcGameStatus();
+  return GameInfo(gameStatus, squares);
+}
+
 void Board::setPromotionType(std::string type) { promotionType = type; }
+
+std::vector<Square> Board::calcAndGetLegalMoves(int r, int c) {
+
+  auto row = sanitizeBoardLength(r);
+  auto col = sanitizeBoardLength(c);
+
+  currentSquare = squares[row][col];
+
+  legalMoves.clear();
+
+  auto isPlayersPiece = turn == currentSquare.getPiece().getColor();
+
+  if (!isPlayersPiece || gameStatus != "") {
+    return legalMoves;
+  }
+
+  auto possibleMoves = findPossibleMoves(currentSquare, false);
+  legalMoves = findLegalMoves(possibleMoves, turn, currentSquare);
+  return legalMoves;
+}
+
+std::vector<std::vector<Square>> Board::getSquares() const { return squares; }
+
+Square Board::getSquare(int row, int col) const { return squares[row][col]; }
+
+GameInfo Board::getGameInfo() { return GameInfo(gameStatus, squares); };

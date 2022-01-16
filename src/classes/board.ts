@@ -1,4 +1,4 @@
-import type { BoardPosition, SquareArray, Images, RowArray, TModule } from '../types/chess';
+import type { BoardPosition, SquareArray, Images, RowArray, GamePtr } from '../types/chess';
 import { getImage } from '../functions/helpers';
 import {
 	showPromotionModal,
@@ -13,7 +13,7 @@ class Board {
 	canvas: HTMLCanvasElement;
 	context: CanvasRenderingContext2D;
 	squareSize: number;
-	Module: TModule;
+	gamePtr: GamePtr;
 	mouseDown = false;
 	currentSquare: BoardPosition;
 	possibleMoves: SquareArray;
@@ -22,9 +22,9 @@ class Board {
 	squares: RowArray;
 	playerPerspective: string;
 
-	constructor(Module: TModule, images: Images) {
-		this.Module = Module;
-		this.squares = this.Module.getSquares();
+	constructor(gamePtr: GamePtr, images: Images) {
+		this.gamePtr = gamePtr;
+		this.squares = this.gamePtr.getSquares();
 		this.images = images;
 		this.playerPerspective = 'White';
 
@@ -39,8 +39,11 @@ class Board {
 		});
 
 		createNewGame.set(() => {
-			this.Module.newGame();
-			this.squares = this.Module.getSquares();
+			this.gamePtr.newGame(this.playerPerspective);
+			if (this.playerPerspective === 'Black') {
+				this.makeComputerMove();
+			}
+			this.squares = this.gamePtr.getSquares();
 			this.drawBoard();
 		});
 
@@ -71,6 +74,7 @@ class Board {
 	drawPiece = (image: HTMLImageElement, row: number, col: number): void => {
 		const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
 
+		//the offset needs to scale with the board.
 		this.context.drawImage(
 			image,
 			this.squareSize * flippedCol + 2.5,
@@ -115,7 +119,7 @@ class Board {
 		const row = Math.floor((event.clientY - top) / this.squareSize);
 		const col = Math.floor((event.clientX - left) / this.squareSize);
 		const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
-		this.possibleMoves = this.Module.getPossibleMoves(flippedRow, flippedCol);
+		this.possibleMoves = this.gamePtr.calcAndGetLegalMoves(flippedRow, flippedCol);
 		this.currentSquare = { row: flippedRow, col: flippedCol };
 	};
 
@@ -241,7 +245,7 @@ class Board {
 					this.onPromotion();
 					return;
 				}
-				const { status, squares } = this.Module.movePiece(
+				const { status, squares } = this.gamePtr.makeAMove(
 					this.currentSquare.row,
 					this.currentSquare.col,
 					this.selectedSquare.row,
@@ -249,6 +253,7 @@ class Board {
 				);
 				this.squares = squares;
 				gameStatus.set(status);
+				this.makeComputerMove();
 			}
 			this.currentSquare = null;
 			this.mouseDown = false;
@@ -257,11 +262,11 @@ class Board {
 	};
 
 	onPromotion = (): void => {
-		promotionColor.set(this.Module.getTurn());
+		promotionColor.set(this.gamePtr.getTurn());
 
 		onChoosePromotion.set((type: string) => {
-			this.Module.setPromotionType(type);
-			const { status, squares } = this.Module.movePiece(
+			this.gamePtr.setPromotionType(type);
+			const { status, squares } = this.gamePtr.makeAMove(
 				this.currentSquare.row,
 				this.currentSquare.col,
 				this.selectedSquare.row,
@@ -271,11 +276,19 @@ class Board {
 			this.currentSquare = null;
 			this.mouseDown = false;
 			this.drawBoard();
+			this.makeComputerMove();
 			gameStatus.set(status);
 			showPromotionModal.set(false);
 		});
 
 		showPromotionModal.set(true);
+	};
+
+	makeComputerMove = (): void => {
+		const { status, squares } = this.gamePtr.makeComputerMove();
+		this.squares = squares;
+		gameStatus.set(status);
+		this.drawBoard();
 	};
 
 	flipPosition = (row: number, col: number): BoardPosition =>

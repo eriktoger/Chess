@@ -1,9 +1,9 @@
 # Chess
 
 This is my Chess page.
-Where you (soon) can play chess against a computer.
+Where you (sort of) can play chess against a computer.
 
-Right now can only play against yourself!
+Right now the computer only makes random moves.
 
 # Run locally
 

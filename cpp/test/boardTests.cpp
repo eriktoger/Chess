@@ -15,9 +15,6 @@ GameInfo moveMaker(const std::string &moves, Board &board) {
       int startCol = move[0] - 'a';
       int endRow = '8' - move[3];
       int endCol = move[2] - 'a';
-      // std::cout << startRow << " " << startCol << " " << endRow << " " <<
-      // endCol
-      //           << std::endl;
       board.calcAndGetLegalMoves(startRow, startCol);
       gameInfo = board.makeAMove(startRow, startCol, endRow, endCol);
 
@@ -47,8 +44,6 @@ TEST_F(BoardTests, GenerateBoard) {
   EXPECT_EQ(board.getSquares()[0].size(), BOARD_LENGTH);
   EXPECT_EQ(board.getTurn(), WHITE);
 }
-
-// test that board is black and white.
 
 TEST_F(BoardTests, WhitePawns) {
   for (int i = 0; i < BOARD_LENGTH; i++) {
@@ -380,7 +375,7 @@ TEST(NewBoardTests, WhiteCheckMatesBlack) {
   auto gameInfo =
       moveMaker("e2-e4 e7-e5 Qd1-h5 a7-a6 Bf1-c4 a6-a5 Qh5-f7", newBoard);
 
-  EXPECT_EQ(gameInfo.getStatus(), "White won");
+  EXPECT_EQ(gameInfo.getStatus(), WHITE_WON);
 }
 
 TEST(NewBoardTests, StaleMateDraw) {
@@ -390,7 +385,7 @@ TEST(NewBoardTests, StaleMateDraw) {
                             "Qb7-b8 Qd3-h7 Qb8-c8 Kf7-g6 Qc8-e6",
                             newBoard);
 
-  EXPECT_EQ(gameInfo.getStatus(), "Draw");
+  EXPECT_EQ(gameInfo.getStatus(), DRAW_BY_STALEMATE);
 }
 
 TEST(NewBoardTests, ThreeFoldRepetition) {
@@ -399,7 +394,7 @@ TEST(NewBoardTests, ThreeFoldRepetition) {
                             " Sf6-g8 Sg1-f3",
                             newBoard);
 
-  EXPECT_EQ(gameInfo.getStatus(), "Draw");
+  EXPECT_EQ(gameInfo.getStatus(), DRAW_BY_REPETITION);
 }
 
 // insufficent material draw

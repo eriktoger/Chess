@@ -6,3 +6,6 @@ Move::Move(std::string player, int startRow, int startCol, int endRow,
     : player(player), startRow(startRow), startCol(startCol), endRow(endRow),
       endCol(endCol), pieceTypeMoved(pieceTypeMoved),
       pieceTypeCaptured(pieceTypeCaptured) {}
+
+Move::Move(int startRow, int startCol, int endRow, int endCol)
+    : startRow(startRow), startCol(startCol), endRow(endRow), endCol(endCol) {}

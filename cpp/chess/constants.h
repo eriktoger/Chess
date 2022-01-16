@@ -13,6 +13,14 @@ constexpr char ROOK[] = "Rook";
 constexpr char QUEEN[] = "Queen";
 constexpr char KING[] = "King";
 
+constexpr char DRAW_BY_STALEMATE[] = "Draw by stalemate";
+constexpr char DRAW_BY_INSUFFICENT_MATING_MATERIAL[] =
+    "Draw by insufficient mating material";
+constexpr char DRAW_BY_REPETITION[] = "Draw by repetition";
+constexpr char DRAW_BY_50_MOVE_RULE[] = "Draw by 50 move rule";
+constexpr char WHITE_WON[] = "White won";
+constexpr char BLACK_WON[] = "Black won";
+
 struct Movement {
   int rowDiff;
   int colDiff;

@@ -25,11 +25,10 @@ export type RowArray = {
 	size: () => number;
 };
 
-export type TModule = {
-	onRuntimeInitialized: () => void;
-	getPossibleMoves: (row: number, col: number) => SquareArray;
+export type GamePtr = {
+	calcAndGetLegalMoves: (row: number, col: number) => SquareArray;
 	getSquares: () => RowArray;
-	movePiece: (
+	makeAMove: (
 		startRow: number,
 		startCol: number,
 		endRow: number,
@@ -37,7 +36,13 @@ export type TModule = {
 	) => { status: string; squares: RowArray };
 	getTurn: () => string;
 	setPromotionType: (type: string) => void;
-	newGame: () => void;
+	newGame: (playerColor: string) => void;
+	makeComputerMove: () => { status: string; squares: RowArray };
+};
+
+export type TModule = {
+	onRuntimeInitialized: () => void;
+	getGame: () => GamePtr;
 };
 
 export type Images = {

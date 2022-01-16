@@ -116,16 +116,12 @@ public:
         std::vector<Square> possibleSquares, std::string turn,
         Square currentSquare, std::vector<Move> history);
 
-  Square getSquare(int row, int col);
-
-  std::vector<std::vector<Square>> getSquares() const;
-
-  std::string getTurn();
-
-  std::vector<Square> calcAndGetLegalMoves(int row, int col);
-
-  void setPromotionType(std::string type);
-
   GameInfo makeAMove(int startR, int startC, int endR, int endC);
+  void setPromotionType(std::string type);
+  std::vector<Square> calcAndGetLegalMoves(int row, int col);
+  std::vector<std::vector<Square>> getSquares() const;
+  Square getSquare(int row, int col) const;
+  std::string getTurn();
+  GameInfo getGameInfo();
 };
 #endif // BOARD_H
