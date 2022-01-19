@@ -12,12 +12,15 @@
 class GameInfo {
   std::string status;
   std::vector<std::vector<Square>> squares;
+  Move lastMove;
 
 public:
   std::string getStatus() const { return status; }
   std::vector<std::vector<Square>> getSquares() const { return squares; }
-  GameInfo(std::string status, std::vector<std::vector<Square>> squares)
-      : status(status), squares(squares){};
+  Move getLastMove() const { return lastMove; }
+  GameInfo(std::string status, std::vector<std::vector<Square>> squares,
+           Move lastMove)
+      : status(status), squares(squares), lastMove(lastMove){};
   GameInfo(){};
 };
 
@@ -109,6 +112,8 @@ private:
   int calcMatingMaterial(const Piece &piece, const std::string &color);
 
   bool calcThreeFoldRepetition();
+
+  Move findLastMove();
 
 public:
   Board();

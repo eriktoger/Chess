@@ -22,7 +22,14 @@ EMSCRIPTEN_BINDINGS(my_module) {
 
   emscripten::class_<GameInfo>("GameInfo")
       .property("status", &GameInfo::getStatus)
-      .property("squares", &GameInfo::getSquares);
+      .property("squares", &GameInfo::getSquares)
+      .property("lastMove", &GameInfo::getLastMove);
+
+  emscripten::class_<Move>("Move")
+      .property("startRow", &Move::startRow)
+      .property("startCol", &Move::startCol)
+      .property("endRow", &Move::endRow)
+      .property("endCol", &Move::endCol);
 
   emscripten::class_<Board>("BoardPtr")
       .constructor<>()

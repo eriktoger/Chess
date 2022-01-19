@@ -3,7 +3,7 @@
 
 TEST(GameTests, MovePieces) {
   Game game;
-  game.newGame(WHITE);
+  game.newGame(WHITE, 1000);
   game.calcAndGetLegalMoves(6, 4);
   game.makeAMove(6, 4, 4, 4);
   const auto &piece = game.getSquares()[4][4].getPiece();

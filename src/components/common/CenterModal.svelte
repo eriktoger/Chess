@@ -31,6 +31,6 @@
 		margin: auto;
 		padding: 20px;
 		border: 1px solid #888;
-		width: 300px;
+		width: 400px;
 	}
 </style>

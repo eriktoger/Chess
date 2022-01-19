@@ -1,5 +1,13 @@
 import { get } from 'svelte/store';
-import type { BoardPosition, SquareArray, Images, RowArray, GamePtr } from '../types/chess';
+import type {
+	BoardPosition,
+	SquareArray,
+	Images,
+	RowArray,
+	GamePtr,
+	Move,
+	Piece
+} from '../types/chess';
 import { getImage } from '../functions/helpers';
 import {
 	showPromotionModal,
@@ -22,6 +30,7 @@ class Board {
 	images: Images;
 	squares: RowArray;
 	playerPerspective: string;
+	lastMove: Move;
 
 	constructor(gamePtr: GamePtr, images: Images) {
 		this.gamePtr = gamePtr;
@@ -45,6 +54,7 @@ class Board {
 				this.makeComputerMove();
 			}
 			this.squares = this.gamePtr.getSquares();
+			this.lastMove = { startRow: -1, startCol: -1, endRow: -1, endCol: -1 };
 			this.drawBoard();
 		});
 
@@ -72,47 +82,67 @@ class Board {
 		this.drawBoard();
 	};
 
-	drawPiece = (image: HTMLImageElement, row: number, col: number): void => {
-		const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
+	drawPiece = (row: number, col: number, piece: Piece): void => {
+		const { type, color } = piece;
+		if (row === this.currentSquare?.row && col == this.currentSquare?.col) {
+			this.context.globalAlpha = 0.4;
+		} else {
+			this.context.globalAlpha = 1;
+		}
 
+		const image = getImage(type, color, this.images);
+		image && this.drawImage(image, row, col);
+		this.context.globalAlpha = 1;
+	};
+
+	drawImage = (image: HTMLImageElement, row: number, col: number): void => {
 		//the offset needs to scale with the board.
 		this.context.drawImage(
 			image,
-			this.squareSize * flippedCol + 2.5,
-			this.squareSize * flippedRow + 5,
+			this.squareSize * col + 2.5,
+			this.squareSize * row + 5,
 			this.squareSize - 5,
 			this.squareSize - 5
 		);
 	};
 
 	drawBoard = (): void => {
+		const { startRow = -1, startCol = -1, endRow = -1, endCol = -1 } = this.lastMove ?? {};
 		for (let r = 0; r < this.squares.size(); r++) {
 			for (let c = 0; c < this.squares.get(r).size(); c++) {
-				const {
-					piece: { color: pieceColor, type },
-					row,
-					col,
-					color: squareColor
-				} = this.squares.get(r).get(c);
-				this.context.fillStyle = squareColor === 'White' ? 'white' : 'grey';
+				const { piece, row, col, color } = this.squares.get(r).get(c);
 				const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
-				this.context.fillRect(
-					flippedCol * this.squareSize,
-					flippedRow * this.squareSize,
-					this.squareSize,
-					this.squareSize
-				);
 
-				if (row === this.currentSquare?.row && col == this.currentSquare?.col) {
-					this.context.globalAlpha = 0.4;
-				} else {
-					this.context.globalAlpha = 1;
+				this.drawSquare(flippedRow, flippedCol, color);
+
+				if ((row === startRow && col == startCol) || (row === endRow && col == endCol)) {
+					this.drawLastMove(flippedRow, flippedCol);
 				}
-				const image = getImage(type, pieceColor, this.images);
-				image && this.drawPiece(image, row, col);
-				this.context.globalAlpha = 1;
+				this.drawPiece(flippedRow, flippedCol, piece);
 			}
 		}
+	};
+
+	drawSquare = (row: number, col: number, color: string): void => {
+		this.context.fillStyle = color === 'White' ? 'white' : 'grey';
+		this.context.fillRect(
+			col * this.squareSize,
+			row * this.squareSize,
+			this.squareSize,
+			this.squareSize
+		);
+	};
+
+	drawLastMove = (row: number, col: number): void => {
+		this.context.fillStyle = 'green';
+		this.context.globalAlpha = 0.2;
+		this.context.fillRect(
+			col * this.squareSize,
+			row * this.squareSize,
+			this.squareSize,
+			this.squareSize
+		);
+		this.context.globalAlpha = 1;
 	};
 
 	getPossibleMoves = (event: MouseEvent): void => {
@@ -125,27 +155,34 @@ class Board {
 	};
 
 	drawPossibleMoves = (type: string, color: string): void => {
+		const image = getImage(type, color, this.images);
 		for (let i = 0; i < this.possibleMoves.size(); i++) {
-			const image = getImage(type, color, this.images);
 			const { row, col } = this.possibleMoves.get(i);
 			const square = this.squares.get(row).get(col);
-
+			const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
 			if (square.piece.type !== '') {
-				const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
-				this.context.fillStyle = 'red';
-				this.context.globalAlpha = 0.25;
-				this.context.fillRect(
-					flippedCol * this.squareSize,
-					flippedRow * this.squareSize,
-					this.squareSize,
-					this.squareSize
-				);
+				this.drawCaptureSquare(flippedRow, flippedCol);
 			} else {
-				this.context.globalAlpha = 0.4;
-				this.drawPiece(image, row, col);
-				this.context.globalAlpha = 1;
+				this.drawPossibleMove(flippedRow, flippedCol, image);
 			}
 		}
+	};
+
+	drawPossibleMove = (row: number, col: number, image: HTMLImageElement): void => {
+		this.context.globalAlpha = 0.2;
+		image && this.drawImage(image, row, col);
+		this.context.globalAlpha = 1;
+	};
+
+	drawCaptureSquare = (row: number, col: number): void => {
+		this.context.fillStyle = 'red';
+		this.context.globalAlpha = 0.25;
+		this.context.fillRect(
+			col * this.squareSize,
+			row * this.squareSize,
+			this.squareSize,
+			this.squareSize
+		);
 	};
 
 	drawLiftedPiece = (event: MouseEvent, image: HTMLImageElement): void => {
@@ -246,12 +283,13 @@ class Board {
 					this.onPromotion();
 					return;
 				}
-				const { status, squares } = this.gamePtr.makeAMove(
+				const { status, squares, lastMove } = this.gamePtr.makeAMove(
 					this.currentSquare.row,
 					this.currentSquare.col,
 					this.selectedSquare.row,
 					this.selectedSquare.col
 				);
+				this.lastMove = lastMove;
 				this.squares = squares;
 				gameStatus.set(status);
 				this.makeComputerMove();
@@ -267,12 +305,13 @@ class Board {
 
 		onChoosePromotion.set((type: string) => {
 			this.gamePtr.setPromotionType(type);
-			const { status, squares } = this.gamePtr.makeAMove(
+			const { status, squares, lastMove } = this.gamePtr.makeAMove(
 				this.currentSquare.row,
 				this.currentSquare.col,
 				this.selectedSquare.row,
 				this.selectedSquare.col
 			);
+			this.lastMove = lastMove;
 			this.squares = squares;
 			this.currentSquare = null;
 			this.mouseDown = false;
@@ -289,7 +328,8 @@ class Board {
 		this.drawBoard();
 		setTimeout(() => {
 			if (get(gameStatus) === '') {
-				const { status, squares } = this.gamePtr.makeComputerMove();
+				const { status, squares, lastMove } = this.gamePtr.makeComputerMove();
+				this.lastMove = lastMove;
 				this.squares = squares;
 				gameStatus.set(status);
 				this.drawBoard();

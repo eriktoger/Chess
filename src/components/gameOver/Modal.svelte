@@ -21,9 +21,10 @@
 		<h3 class="header">{$gameStatus}</h3>
 		<div class="break" />
 		<input
+			autocomplete="off"
 			type="range"
 			min="0"
-			max="9900"
+			max="10000"
 			on:input={(e) => timePerMove.set(Number(e.currentTarget.value))}
 		/>
 		{#if $timePerMove === 0}

@@ -655,14 +655,16 @@ GameInfo Board::makeAMove(int startR, int startC, int endR, int endC) {
   auto endCol = sanitizeBoardLength(endC);
 
   auto moveIsInvalid = verifyMove(startRow, startCol, endRow, endCol);
+  auto lastMove = findLastMove();
   if (moveIsInvalid) {
-    return GameInfo(gameStatus, squares);
+    return GameInfo(gameStatus, squares, lastMove);
   }
 
   movePiece(startRow, startCol, endRow, endCol);
   changeTurn();
   gameStatus = calcGameStatus();
-  return GameInfo(gameStatus, squares);
+  lastMove = findLastMove();
+  return GameInfo(gameStatus, squares, lastMove);
 }
 
 void Board::setPromotionType(std::string type) { promotionType = type; }
@@ -691,4 +693,17 @@ std::vector<std::vector<Square>> Board::getSquares() const { return squares; }
 
 Square Board::getSquare(int row, int col) const { return squares[row][col]; }
 
-GameInfo Board::getGameInfo() { return GameInfo(gameStatus, squares); };
+GameInfo Board::getGameInfo() {
+
+  auto lastMove = findLastMove();
+  return GameInfo(gameStatus, squares, lastMove);
+};
+
+Move Board::findLastMove() {
+
+  if (history.size() > 0) {
+    return history.back();
+  } else {
+    return Move(-1, -1, -1, -1);
+  }
+}
