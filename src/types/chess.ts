@@ -43,7 +43,7 @@ export type GamePtr = {
 	) => { status: string; squares: RowArray; lastMove: Move };
 	getTurn: () => string;
 	setPromotionType: (type: string) => void;
-	newGame: (playerColor: string, timePerMove: number) => void;
+	newGame: (playerColor: string, timePerMove: number, useOpeningBook: boolean) => void;
 	makeComputerMove: () => { status: string; squares: RowArray; lastMove: Move };
 };
 

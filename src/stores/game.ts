@@ -4,8 +4,8 @@ export const setPlayerPerspective = writable((perspective: string) => {
 	console.log('Game not loaded', perspective);
 });
 
-export const createNewGame = writable((timePerMove: number) => {
-	console.log('Game not loaded', timePerMove);
+export const createNewGame = writable((timePerMove: number, useOpeningBook: boolean) => {
+	console.log('Game not loaded', timePerMove, useOpeningBook);
 });
 
 export const timePerMove = writable(5000);

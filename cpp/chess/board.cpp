@@ -11,7 +11,7 @@ Board::Board(std::shared_ptr<Board> boardPtr) {
 }
 
 Board::Board() {
-  std::vector<std::vector<Square>> vec(8, std::vector<Square>(8));
+  Squares vec(BOARD_LENGTH, std::vector<Square>(BOARD_LENGTH));
 
   squares = vec;
 
@@ -689,7 +689,7 @@ std::vector<Square> Board::calcAndGetLegalMoves(int r, int c) {
   return legalMoves;
 }
 
-std::vector<std::vector<Square>> Board::getSquares() const { return squares; }
+Squares Board::getSquares() const { return squares; }
 
 Square Board::getSquare(int row, int col) const { return squares[row][col]; }
 

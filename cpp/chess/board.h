@@ -9,24 +9,25 @@
 #include <string>
 #include <vector>
 
+using Squares = std::vector<std::vector<Square>>;
+
 class GameInfo {
   std::string status;
-  std::vector<std::vector<Square>> squares;
+  Squares squares;
   Move lastMove;
 
 public:
   std::string getStatus() const { return status; }
-  std::vector<std::vector<Square>> getSquares() const { return squares; }
+  Squares getSquares() const { return squares; }
   Move getLastMove() const { return lastMove; }
-  GameInfo(std::string status, std::vector<std::vector<Square>> squares,
-           Move lastMove)
+  GameInfo(std::string status, Squares squares, Move lastMove)
       : status(status), squares(squares), lastMove(lastMove){};
-  GameInfo(){};
+  GameInfo() = default;
 };
 
 class Board {
 private:
-  std::vector<std::vector<Square>> squares;
+  Squares squares;
   std::vector<Square> legalMoves;
   std::string turn;
   Square currentSquare;
@@ -120,14 +121,13 @@ public:
 
   Board(std::shared_ptr<Board> boardPtr);
 
-  Board(std::vector<std::vector<Square>> squares,
-        std::vector<Square> possibleSquares, std::string turn,
+  Board(Squares squares, std::vector<Square> possibleSquares, std::string turn,
         Square currentSquare, std::vector<Move> history);
 
   GameInfo makeAMove(int startR, int startC, int endR, int endC);
   void setPromotionType(std::string type);
   std::vector<Square> calcAndGetLegalMoves(int row, int col);
-  std::vector<std::vector<Square>> getSquares() const;
+  Squares getSquares() const;
   Square getSquare(int row, int col) const;
   std::string getTurn();
   GameInfo getGameInfo();

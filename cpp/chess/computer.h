@@ -42,11 +42,11 @@ private:
   int getCurrentPieceValue(const Piece &piece, int row, int col);
 
 public:
-  Computer();
+  Computer() = default;
   Computer(std::shared_ptr<Board> board, std::string color,
            std::chrono::milliseconds timePerMove);
 
-  Move getMove();
+  Move findMove();
 };
 
 #endif // COMPUTER_H

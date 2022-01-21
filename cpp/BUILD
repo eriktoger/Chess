@@ -52,3 +52,10 @@ cc_binary(
 )
 
 
+cc_binary(
+    name = "openingBookTests",
+    srcs = ["test/openingBookTests.cpp"],
+    deps=["@com_google_googletest//:gtest_main",":game"],
+)
+
+

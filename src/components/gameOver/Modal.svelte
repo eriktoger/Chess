@@ -3,17 +3,13 @@
 	import { setPlayerPerspective, createNewGame, timePerMove } from '../../stores/game';
 	import CenterModal from '../common/CenterModal.svelte';
 
+	let time = '5.0';
+	let useOpeningBook = true;
 	const onClick = (perspective: string) => {
 		gameStatus.set('');
 		$setPlayerPerspective(perspective);
-		$createNewGame($timePerMove);
+		$createNewGame(Number(time) * 1000, useOpeningBook);
 	};
-
-	let time: string;
-
-	timePerMove.subscribe((value) => {
-		time = (value / 1000).toFixed(1);
-	});
 </script>
 
 <CenterModal>
@@ -24,14 +20,27 @@
 			autocomplete="off"
 			type="range"
 			min="0"
-			max="10000"
-			on:input={(e) => timePerMove.set(Number(e.currentTarget.value))}
+			max="10"
+			step="0.1"
+			on:input={(e) => (time = Number(e.currentTarget.value).toFixed(1))}
 		/>
+
+		<div class="break" />
 		{#if $timePerMove === 0}
 			<p>The computer will do random moves</p>
 		{:else}
 			<p>The computer will use {time} seconds per move</p>
 		{/if}
+		<div class="break" />
+		<div class="openingBook">
+			<input
+				type="checkbox"
+				checked={useOpeningBook}
+				on:change={() => (useOpeningBook = !useOpeningBook)}
+			/>
+			<label for="scales">Computer will use an opening book</label>
+		</div>
+		<div class="break" />
 		<button class="button" on:click={() => onClick('White')}>Play as White</button>
 		<button class="button" on:click={() => onClick('Black')}>Play as Black</button>
 	</div>
@@ -53,5 +62,8 @@
 	}
 	.header {
 		margin-top: 0;
+	}
+	.openingBook {
+		margin-bottom: 10px;
 	}
 </style>

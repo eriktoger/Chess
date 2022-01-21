@@ -48,8 +48,8 @@ class Board {
 			this.playerPerspective = perspective;
 		});
 
-		createNewGame.set((timePerMove: number) => {
-			this.gamePtr.newGame(this.playerPerspective, timePerMove);
+		createNewGame.set((timePerMove: number, useOpeningBook: boolean) => {
+			this.gamePtr.newGame(this.playerPerspective, timePerMove, useOpeningBook);
 			if (this.playerPerspective === 'Black') {
 				this.makeComputerMove();
 			}

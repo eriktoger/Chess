@@ -1,20 +1,17 @@
 #include "computer.h"
 #include "constants.h"
 
-Computer::Computer() {}
-
 Computer::Computer(std::shared_ptr<Board> board, std::string color,
                    std::chrono::milliseconds timePerMove)
     : board(board), color(color), timePerMove(timePerMove) {}
 
-Move Computer::getMove() {
+Move Computer::findMove() {
 
   if (board->getTurn() != color) {
     return Move(0, 0, 0, 0);
   }
 
   board->setPromotionType(QUEEN);
-
   if (timePerMove == std::chrono::milliseconds(0)) {
     return getRandomMove();
   }
