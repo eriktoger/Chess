@@ -72,7 +72,7 @@ class Board {
 	}
 
 	resizeBoard = (): void => {
-		this.squareSize = Math.min(window.innerHeight - 300, window.innerWidth - 100) / 8;
+		this.squareSize = Math.min(window.innerHeight * 0.8, window.innerWidth * 0.8) / 8;
 		this.canvas.height = this.squareSize * 8;
 		this.canvas.width = this.squareSize * 8;
 
@@ -96,13 +96,12 @@ class Board {
 	};
 
 	drawImage = (image: HTMLImageElement, row: number, col: number): void => {
-		//the offset needs to scale with the board.
 		this.context.drawImage(
 			image,
-			this.squareSize * col + 2.5,
-			this.squareSize * row + 5,
-			this.squareSize - 5,
-			this.squareSize - 5
+			this.squareSize * col + this.squareSize / 40,
+			this.squareSize * row + this.squareSize / 20,
+			this.squareSize - this.squareSize / 20,
+			this.squareSize - this.squareSize / 20
 		);
 	};
 
@@ -187,17 +186,11 @@ class Board {
 
 	drawLiftedPiece = (event: MouseEvent, image: HTMLImageElement): void => {
 		const { left, top } = this.canvas.getBoundingClientRect();
-		const centerToMouse = 50;
+		const centerToMouse = this.squareSize / 2;
 		const row = (event.clientY - top - centerToMouse) / this.squareSize;
 		const col = (event.clientX - left - centerToMouse) / this.squareSize;
 		this.context.globalAlpha = 0.4;
-		this.context.drawImage(
-			image,
-			this.squareSize * col + 2.5,
-			this.squareSize * row + 5,
-			this.squareSize - 5,
-			this.squareSize - 5
-		);
+		this.drawImage(image, row, col);
 		this.context.globalAlpha = 1;
 	};
 

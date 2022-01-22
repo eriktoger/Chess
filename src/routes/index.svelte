@@ -35,17 +35,26 @@
 	<GameOverModal />
 {/if}
 
-<h1>Chess</h1>
-
-<div class="container">
-	<canvas id="canvas" />
+<div class="page">
+	<div class="container">
+		<canvas id="canvas" />
+	</div>
 </div>
 
 <style>
+	.page {
+		background-image: url('mountain.avif');
+		background-size: cover;
+		height: 100vh;
+		width: 100vw;
+		overflow: hidden;
+	}
 	.container {
 		border: 8px solid rgba(102, 19, 19);
 		display: table;
+		margin: 20px auto;
 	}
+
 	#canvas {
 		vertical-align: middle;
 	}

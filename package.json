@@ -2,7 +2,7 @@
 	"name": "chess",
 	"version": "0.0.1",
 	"scripts": {
-		"dev": "svelte-kit dev --port 4000",
+		"dev": "svelte-kit dev --port 4000 --host 4000",
 		"build": "svelte-kit build",
 		"buildCPP": "em++ --bind -O3 -s SINGLE_FILE=1 -s ENVIRONMENT='web' -s ALLOW_MEMORY_GROWTH=1 -o src/wasm/chess.js cpp/export.cpp cpp/chess/*.cpp && echo 'export default Module;' >> src/wasm/chess.js",
 		"buildCPPWASM": "em++ --bind -O3  -s ENVIRONMENT='web' -s ALLOW_MEMORY_GROWTH=1 -o src/wasm/chess.js cpp/export.cpp cpp/chess/*.cpp && echo 'export default Module;' >> src/wasm/chess.js && mv src/wasm/chess.wasm src/static",
