@@ -16,7 +16,7 @@ import {
 	onChoosePromotion,
 	gameStatus
 } from '../stores/modals';
-import { setPlayerPerspective, createNewGame } from '../stores/game';
+import { setPlayerPerspective, createNewGame, usingTouch } from '../stores/game';
 
 class Board {
 	canvas: HTMLCanvasElement;
@@ -31,6 +31,7 @@ class Board {
 	squares: RowArray;
 	playerPerspective: string;
 	lastMove: Move;
+	usingTouch: boolean;
 
 	constructor(gamePtr: GamePtr, images: Images) {
 		this.gamePtr = gamePtr;
@@ -58,16 +59,25 @@ class Board {
 			this.drawBoard();
 		});
 
-		this.canvas.addEventListener('mousedown', (event) => {
-			this.onMouseDown(event);
+		usingTouch.subscribe((value) => {
+			this.usingTouch = value;
 		});
 
-		this.canvas.addEventListener('mousemove', (event) => {
-			this.onMouseMove(event);
+		this.canvas.addEventListener('mousedown', ({ clientX, clientY }) => {
+			!this.usingTouch && this.onMouseDown(clientX, clientY);
 		});
 
-		this.canvas.addEventListener('mouseup', (event) => {
-			this.onMouseUp(event);
+		this.canvas.addEventListener('mousemove', ({ clientX, clientY }) => {
+			!this.usingTouch && this.onMouseMove(clientX, clientY);
+		});
+
+		this.canvas.addEventListener('mouseup', ({ clientX, clientY }) => {
+			!this.usingTouch && this.onMouseUp(clientX, clientY);
+		});
+
+		this.canvas.addEventListener('touchstart', (event) => {
+			const { clientX, clientY } = event.touches?.[0];
+			this.usingTouch && this.onTouch(clientX, clientY);
 		});
 	}
 
@@ -84,7 +94,11 @@ class Board {
 
 	drawPiece = (row: number, col: number, piece: Piece): void => {
 		const { type, color } = piece;
-		if (row === this.currentSquare?.row && col == this.currentSquare?.col) {
+		const { row: flippedRow, col: flippedCol } = this.flipPosition(
+			this.currentSquare?.row,
+			this.currentSquare?.col
+		);
+		if (row === flippedRow && col == flippedCol) {
 			this.context.globalAlpha = 0.4;
 		} else {
 			this.context.globalAlpha = 1;
@@ -111,7 +125,6 @@ class Board {
 			for (let c = 0; c < this.squares.get(r).size(); c++) {
 				const { piece, row, col, color } = this.squares.get(r).get(c);
 				const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
-
 				this.drawSquare(flippedRow, flippedCol, color);
 
 				if ((row === startRow && col == startCol) || (row === endRow && col == endCol)) {
@@ -144,13 +157,11 @@ class Board {
 		this.context.globalAlpha = 1;
 	};
 
-	getPossibleMoves = (event: MouseEvent): void => {
-		const { left, top } = this.canvas.getBoundingClientRect();
-		const row = Math.floor((event.clientY - top) / this.squareSize);
-		const col = Math.floor((event.clientX - left) / this.squareSize);
-		const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
+	getPossibleMoves = (clientX: number, clientY: number): void => {
+		const [flippedRow, flippedCol] = this.calcRowColClicked(clientX, clientY);
 		this.possibleMoves = this.gamePtr.calcAndGetLegalMoves(flippedRow, flippedCol);
-		this.currentSquare = { row: flippedRow, col: flippedCol };
+		this.currentSquare =
+			this.possibleMoves.size() > 0 ? { row: flippedRow, col: flippedCol } : { row: -1, col: -1 };
 	};
 
 	drawPossibleMoves = (type: string, color: string): void => {
@@ -184,11 +195,11 @@ class Board {
 		);
 	};
 
-	drawLiftedPiece = (event: MouseEvent, image: HTMLImageElement): void => {
+	drawLiftedPiece = (clientX: number, clientY: number, image: HTMLImageElement): void => {
 		const { left, top } = this.canvas.getBoundingClientRect();
 		const centerToMouse = this.squareSize / 2;
-		const row = (event.clientY - top - centerToMouse) / this.squareSize;
-		const col = (event.clientX - left - centerToMouse) / this.squareSize;
+		const row = (clientY - top - centerToMouse) / this.squareSize;
+		const col = (clientX - left - centerToMouse) / this.squareSize;
 		this.context.globalAlpha = 0.4;
 		this.drawImage(image, row, col);
 		this.context.globalAlpha = 1;
@@ -210,12 +221,9 @@ class Board {
 		this.context.stroke();
 	};
 
-	getSelectedSquare = (event: MouseEvent): void => {
-		const { left, top } = this.canvas.getBoundingClientRect();
-		const r = Math.floor((event.clientY - top) / this.squareSize);
-		const c = Math.floor((event.clientX - left) / this.squareSize);
-		const { row: flippedRow, col: flippedCol } = this.flipPosition(r, c);
-		for (let i = 0; i < this.possibleMoves.size(); i++) {
+	getSelectedSquare = (clientX: number, clientY: number): void => {
+		const [flippedRow, flippedCol] = this.calcRowColClicked(clientX, clientY);
+		for (let i = 0; i < this.possibleMoves?.size(); i++) {
 			const { row, col } = this.possibleMoves.get(i);
 			if (flippedRow === row && flippedCol === col) {
 				this.selectedSquare = { row, col };
@@ -225,8 +233,8 @@ class Board {
 		this.selectedSquare = null;
 	};
 
-	onMouseDown = (event: MouseEvent): void => {
-		this.getPossibleMoves(event);
+	onMouseDown = (clientX: number, clientY: number): void => {
+		this.getPossibleMoves(clientX, clientY);
 		if (this.possibleMoves.size() > 0) {
 			const {
 				piece: { type, color }
@@ -237,9 +245,9 @@ class Board {
 		}
 	};
 
-	onMouseMove = (event: MouseEvent): void => {
+	onMouseMove = (clientX: number, clientY: number): void => {
 		if (this.mouseDown) {
-			this.getSelectedSquare(event);
+			this.getSelectedSquare(clientX, clientY);
 
 			this.drawBoard();
 
@@ -255,42 +263,67 @@ class Board {
 
 			const piece = getImage(type, color, this.images);
 
-			this.drawLiftedPiece(event, piece);
+			this.drawLiftedPiece(clientX, clientY, piece);
 		}
 	};
 
-	onMouseUp = (event: MouseEvent): void => {
+	onMouseUp = (clientX: number, clientY: number): void => {
 		if (this.mouseDown) {
-			const { left, top } = this.canvas.getBoundingClientRect();
-
-			const row = Math.floor((event.clientY - top) / this.squareSize);
-			const col = Math.floor((event.clientX - left) / this.squareSize);
-			const { row: flippedRow, col: flippedCol } = this.flipPosition(row, col);
-			if (flippedRow === this.selectedSquare?.row && flippedCol == this.selectedSquare?.col) {
-				const isPawn =
-					this.squares.get(this.currentSquare.row).get(this.currentSquare.col).piece.type ===
-					'Pawn';
-				const willPromote = this.selectedSquare.row == 0 || this.selectedSquare.row == 7;
-
-				if (isPawn && willPromote) {
-					this.onPromotion();
-					return;
-				}
-				const { status, squares, lastMove } = this.gamePtr.makeAMove(
-					this.currentSquare.row,
-					this.currentSquare.col,
-					this.selectedSquare.row,
-					this.selectedSquare.col
-				);
-				this.lastMove = lastMove;
-				this.squares = squares;
-				gameStatus.set(status);
-				this.makeComputerMove();
-			}
-			this.currentSquare = null;
-			this.mouseDown = false;
-			this.drawBoard();
+			this.movePiece(clientX, clientY);
 		}
+	};
+
+	movePiece = (clientX: number, clientY: number): void => {
+		const [flippedRow, flippedCol] = this.calcRowColClicked(clientX, clientY);
+		if (flippedRow === this.selectedSquare?.row && flippedCol == this.selectedSquare?.col) {
+			this.doMovePiece();
+		}
+		this.currentSquare = null;
+		this.mouseDown = false;
+		this.drawBoard();
+	};
+
+	doMovePiece = (): void => {
+		const isPawn =
+			this.squares.get(this.currentSquare.row).get(this.currentSquare.col).piece.type === 'Pawn';
+		const willPromote = this.selectedSquare.row == 0 || this.selectedSquare.row == 7;
+
+		if (isPawn && willPromote) {
+			this.onPromotion();
+			return;
+		}
+
+		const { status, squares, lastMove } = this.gamePtr.makeAMove(
+			this.currentSquare.row,
+			this.currentSquare.col,
+			this.selectedSquare.row,
+			this.selectedSquare.col
+		);
+		this.lastMove = lastMove;
+		this.squares = squares;
+		gameStatus.set(status);
+		this.makeComputerMove();
+	};
+
+	onTouch = (clientX: number, clientY: number): void => {
+		this.getSelectedSquare(clientX, clientY);
+
+		if (this.selectedSquare) {
+			this.doMovePiece();
+			this.possibleMoves = null;
+		} else {
+			this.onTouchPrepareMove(clientX, clientY);
+		}
+	};
+
+	onTouchPrepareMove = (clientX: number, clientY: number): void => {
+		this.getPossibleMoves(clientX, clientY);
+		this.drawBoard();
+		const [flippedRow, flippedCol] = this.calcRowColClicked(clientX, clientY);
+		const {
+			piece: { type, color }
+		} = this.squares.get(flippedRow).get(flippedCol);
+		this.drawPossibleMoves(type, color);
 	};
 
 	onPromotion = (): void => {
@@ -332,6 +365,15 @@ class Board {
 
 	flipPosition = (row: number, col: number): BoardPosition =>
 		this.playerPerspective === 'White' ? { row, col } : { row: 7 - row, col: 7 - col };
+
+	calcRowColClicked = (clientX: number, clientY: number): [number, number] => {
+		const { left, top } = this.canvas.getBoundingClientRect();
+		const row = Math.floor((clientY - top) / this.squareSize);
+		const col = Math.floor((clientX - left) / this.squareSize);
+		const { row: fRow, col: fCol } = this.flipPosition(row, col);
+
+		return [fRow, fCol];
+	};
 }
 
 export default Board;

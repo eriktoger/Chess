@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { gameStatus } from '../../stores/modals';
-	import { setPlayerPerspective, createNewGame, timePerMove } from '../../stores/game';
+	import { setPlayerPerspective, createNewGame, timePerMove, usingTouch } from '../../stores/game';
 	import CenterModal from '../common/CenterModal.svelte';
+	import { getDeviceType } from '../../functions/helpers';
 
 	let time = '5.0';
 	let useOpeningBook = true;
@@ -9,6 +10,8 @@
 		gameStatus.set('');
 		$setPlayerPerspective(perspective);
 		$createNewGame(Number(time) * 1000, useOpeningBook);
+		const isTouch = getDeviceType() !== 'desktop';
+		usingTouch.set(isTouch);
 	};
 </script>
 
@@ -22,6 +25,7 @@
 			min="0"
 			max="10"
 			step="0.1"
+			value={time}
 			on:input={(e) => (time = Number(e.currentTarget.value).toFixed(1))}
 		/>
 
@@ -41,8 +45,8 @@
 			<label for="scales">Computer will use an opening book</label>
 		</div>
 		<div class="break" />
-		<button class="button" on:click={() => onClick('White')}>Play as White</button>
-		<button class="button" on:click={() => onClick('Black')}>Play as Black</button>
+		<button class="button" on:click={onClick.bind(null, 'White')}>Play as White</button>
+		<button class="button" on:click={onClick.bind(null, 'Black')}>Play as Black</button>
 	</div>
 </CenterModal>
 

@@ -2,6 +2,7 @@ export type BoardPosition = {
 	row: number;
 	col: number;
 };
+
 export type Piece = {
 	color: string;
 	type: string;
@@ -18,7 +19,7 @@ export type Square = {
 export type SquareArray = {
 	get: (i: number) => Square;
 	size: () => number;
-};
+} | null;
 
 export type RowArray = {
 	get: (i: number) => SquareArray;
