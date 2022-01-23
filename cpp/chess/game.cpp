@@ -9,7 +9,8 @@ void Game::newGame(std::string playerColor, int timePerMove,
   board = std::make_shared<Board>();
   computer =
       Computer(board, computerColor, std::chrono::milliseconds(timePerMove));
-  openingBook.setIsActive(useOpeningBook);
+
+  openingBook.reset(useOpeningBook);
 }
 
 GameInfo Game::makeAMove(int startR, int startC, int endR, int endC) {

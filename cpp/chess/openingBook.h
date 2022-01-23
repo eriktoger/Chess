@@ -21,16 +21,22 @@ public:
 class OpeningBook {
 private:
   std::shared_ptr<Node> currentNode;
+  std::shared_ptr<Node> rootNode;
   Randomizer randomizer;
   bool isActive;
 
 public:
   OpeningBook();
+
   bool outOfMoves();
+
   Move findMove();
+
   void traverse(Move move);
+
   bool getIsActive();
-  void setIsActive(bool isActive);
+
+  void reset(bool isActive);
 };
 
 #endif // OPENING_BOOK_H

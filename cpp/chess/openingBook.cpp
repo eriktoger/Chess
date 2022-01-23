@@ -29,11 +29,12 @@ void Node::addLine(std::queue<Move> moves) {
 }
 
 OpeningBook::OpeningBook() {
-  currentNode = std::make_shared<Node>();
+  rootNode = std::make_shared<Node>();
 
   for (const auto &opening : openings) {
-    currentNode->addLine(stringToMoves(opening));
+    rootNode->addLine(stringToMoves(opening));
   }
+  currentNode = rootNode;
 }
 
 bool OpeningBook::outOfMoves() {
@@ -71,4 +72,7 @@ void OpeningBook::traverse(Move move) {
 
 bool OpeningBook::getIsActive() { return isActive; }
 
-void OpeningBook::setIsActive(bool isActive) { this->isActive = isActive; }
+void OpeningBook::reset(bool isActive) {
+  this->isActive = isActive;
+  currentNode = rootNode;
+}
