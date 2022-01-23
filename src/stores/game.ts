@@ -8,6 +8,4 @@ export const createNewGame = writable((timePerMove: number, useOpeningBook: bool
 	console.log('Game not loaded', timePerMove, useOpeningBook);
 });
 
-export const timePerMove = writable(5000);
-
 export const usingTouch = writable(true);

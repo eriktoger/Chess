@@ -43,7 +43,7 @@
 
 <style>
 	.page {
-		background-image: url('mountain.avif');
+		background-image: url('/mountain.png');
 		background-size: cover;
 		height: 100vh;
 		width: 100vw;

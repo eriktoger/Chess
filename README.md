@@ -1,9 +1,9 @@
 # Chess
 
 This is my Chess page.
-Where you (sort of) can play chess against a computer.
+Where you can play chess against a (pretty stupid) computer.
 
-Right now the computer only makes random moves.
+[Try it out!](https://chess-wasm.netlify.app/)
 
 # Run locally
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { gameStatus } from '../../stores/modals';
-	import { setPlayerPerspective, createNewGame, timePerMove, usingTouch } from '../../stores/game';
+	import { setPlayerPerspective, createNewGame, usingTouch } from '../../stores/game';
 	import CenterModal from '../common/CenterModal.svelte';
 	import { getDeviceType } from '../../functions/helpers';
 
@@ -30,7 +30,7 @@
 		/>
 
 		<div class="break" />
-		{#if $timePerMove === 0}
+		{#if time === '0.0'}
 			<p>The computer will do random moves</p>
 		{:else}
 			<p>The computer will use {time} seconds per move</p>
