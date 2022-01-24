@@ -1,7 +1,10 @@
 <script lang="ts">
+	import Spinner from './spinner.svelte';
 </script>
 
-<div class="overlay">Loading</div>
+<div class="overlay">
+	<Spinner />
+</div>
 
 <style>
 	.overlay {
