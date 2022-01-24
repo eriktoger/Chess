@@ -6,6 +6,8 @@
 		"build": "npm run buildCPP && svelte-kit build",
 		"buildCPP": "em++ --bind -O3 -s SINGLE_FILE=1 -s ENVIRONMENT='web' -s ALLOW_MEMORY_GROWTH=1 -o src/wasm/chess.js cpp/export.cpp cpp/chess/*.cpp && echo 'export default Module;' >> src/wasm/chess.js",
 		"buildCPPWASM": "em++ --bind -O3  -s ENVIRONMENT='web' -s ALLOW_MEMORY_GROWTH=1 -o src/wasm/chess.js cpp/export.cpp cpp/chess/*.cpp && echo 'export default Module;' >> src/wasm/chess.js && mv src/wasm/chess.wasm src/static",
+		"testDeploy": "netlify build && netlify deploy",
+		"realDeploy": "netlify build && netlify deploy --prod",
 		"package": "svelte-kit package",
 		"preview": "svelte-kit preview",
 		"check": "svelte-check --tsconfig ./tsconfig.json",

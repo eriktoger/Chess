@@ -14,3 +14,16 @@ Where you can play chess against a (pretty stupid) computer.
 - npm install
 - npm run buildCPP
 - npm run dev
+
+# Deploy
+
+Before you can deploy you need to connect through neltify-cli.
+
+- npm install netlify-cli -g
+- netlify login
+- netlify link
+
+### Deploy Commands
+
+- npm run testDeploy
+- npm run realDeploy
